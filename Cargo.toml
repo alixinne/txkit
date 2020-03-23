@@ -1,0 +1,33 @@
+[package]
+name = "txkit"
+version = "0.1.0"
+authors = ["Vincent Tavernier <vince.tavernier@gmail.com>"]
+edition = "2018"
+license = "MIT"
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+log = "0.4.8"
+env_logger = "0.7.1"
+
+tinygl = { git = "https://github.com/vtavernier/tinygl.git", optional = true }
+glutin = { version = "0.24.0", optional = true }
+failure = "0.1.7"
+ndarray = "0.13.0"
+lazy_static = "1.4.0"
+
+[build-dependencies]
+cbindgen = "0.13.2"
+tinygl-compiler = { git = "https://github.com/vtavernier/tinygl.git", optional = true }
+
+[dev-dependencies.cargo-husky]
+version = "1"
+default-features = false
+features = ["user-hooks"]
+
+[features]
+default = ["cpu", "gpu"]
+cpu = ["ndarray/rayon"]
+gpu = ["tinygl", "glutin", "tinygl-compiler"]

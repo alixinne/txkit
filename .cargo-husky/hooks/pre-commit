@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# Check style using cargo fmt
+if ! cargo fmt -- --check ; then
+    echo -e '\e[33mThere are some code style issues. Please run `cargo fmt` first.\e[0m' >&2
+    exit 1
+fi
+
+# Check that tests pass
+if ! cargo test --quiet --all-targets ; then
+    echo -e '\e[31mSome tests do not pass, please fix them.\e[0m' >&2
+    exit 1
+fi
+
+# Commit txkit.h if sources have changed
+if [ -n "$(git status --porcelain src | awk '/^M /')" ]; then
+    git add include/txkit.h
+fi
+
+# Generate README unless README.tpl isn't staged
+if [ -z "$(git status --porcelain README.tpl)" ]; then
+    cargo readme -o README.md
+    git add README.md
+fi
