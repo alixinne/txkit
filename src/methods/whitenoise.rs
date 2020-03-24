@@ -73,7 +73,7 @@ impl Method for Whitenoise {
                     Ok(())
                 })
             }
-            Context::Cpu(_cpu_context) => match tgt {
+            Context::Cpu(cpu_context) => cpu_context.thread_pool.install(|| match tgt {
                 Image::UInt8(ref mut data) => {
                     let sz = data.dim();
 
@@ -92,7 +92,7 @@ impl Method for Whitenoise {
 
                     Ok(())
                 }
-            },
+            }),
         }
     }
 }

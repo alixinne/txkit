@@ -68,7 +68,7 @@ impl Method for Debug {
                     Ok(())
                 })
             }
-            Context::Cpu(_cpu_context) => match tgt {
+            Context::Cpu(cpu_context) => cpu_context.thread_pool.install(|| match tgt {
                 Image::UInt8(ref mut data) => {
                     par_azip!((index idx, o in data) {
                         *o = (Self::debug_idx(idx) * 255.0f32) as u8;
@@ -83,7 +83,7 @@ impl Method for Debug {
 
                     Ok(())
                 }
-            },
+            }),
         }
     }
 }
