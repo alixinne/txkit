@@ -9,6 +9,7 @@ pub mod method;
 pub mod methods;
 
 #[cfg(feature = "gpu")]
+#[allow(dead_code)]
 mod shaders {
     include!(concat!(env!("OUT_DIR"), "/shaders.rs"));
 }
