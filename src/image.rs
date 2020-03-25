@@ -1,19 +1,24 @@
 use ndarray::Array4;
+use strum_macros::EnumDiscriminants;
 
 /// Image that can be sent accross for FFI
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, EnumDiscriminants)]
+#[strum_discriminants(name(ImageDataType))]
+#[strum_discriminants(repr(u32))]
 pub enum Image {
+    /// Unsigned bytes (8 bits) image
     UInt8(Array4<u8>),
+    /// Single-precision floating point (32 bits) image
     Float32(Array4<f32>),
 }
 
-/// Type of elements in an image
-#[repr(u32)]
-pub enum ImageDataType {
-    /// Unsigned bytes (8 bits)
-    UInt8,
-    /// Single-precision floating point (32 bits)
-    Float32,
+macro_rules! each_type {
+    ($on:ident, $with:pat => $e:expr) => {
+        match $on {
+            Self::UInt8($with) => $e,
+            Self::Float32($with) => $e,
+        }
+    }
 }
 
 impl Image {
@@ -26,17 +31,11 @@ impl Image {
     }
 
     pub fn element_type(&self) -> ImageDataType {
-        match self {
-            Self::UInt8(_) => ImageDataType::UInt8,
-            Self::Float32(_) => ImageDataType::Float32,
-        }
+        self.into()
     }
 
     pub fn dim(&self) -> (usize, usize, usize, usize) {
-        match self {
-            Self::UInt8(data) => data.dim(),
-            Self::Float32(data) => data.dim(),
-        }
+        each_type!(self, data => data.dim())
     }
 
     pub fn width(&self) -> usize {
@@ -56,10 +55,7 @@ impl Image {
     }
 
     pub(crate) unsafe fn as_ptr(&self) -> *const std::ffi::c_void {
-        match self {
-            Self::UInt8(data) => data.as_ptr() as *const std::ffi::c_void,
-            Self::Float32(data) => data.as_ptr() as *const std::ffi::c_void,
-        }
+        each_type!(self, data => data.as_ptr() as *const std::ffi::c_void)
     }
 }
 
