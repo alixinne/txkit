@@ -42,6 +42,7 @@ fn main() {
             ..Default::default()
         })
         .with_crate(env::var("CARGO_MANIFEST_DIR").unwrap())
+        .rename_item("MethodBox", "Method")
         .generate()
         .expect("unable to generate C bindings")
         .write_to_file(

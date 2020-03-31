@@ -45,7 +45,7 @@ typedef struct Image Image;
 /**
  * Wrapped method for FFI
  */
-typedef struct MethodBox MethodBox;
+typedef struct Method Method;
 
 #ifdef __cplusplus
 extern "C" {
@@ -171,12 +171,12 @@ uint32_t txkit_image_width(const Image *image);
  *
  * TXKIT_SUCCESS if no error occurred, else a non-zero code.
  */
-int32_t txkit_method_compute(Context *ctx, MethodBox *method, Image *tgt);
+int32_t txkit_method_compute(Context *ctx, Method *method, Image *tgt);
 
 /**
  * Destroy a method
  */
-void txkit_method_destroy(MethodBox *method);
+void txkit_method_destroy(Method *method);
 
 /**
  * Create a new method by name
@@ -190,7 +190,7 @@ void txkit_method_destroy(MethodBox *method);
  * Null pointer if an error occurred creating the method, otherwise pointer to the allocated
  * method.
  */
-MethodBox *txkit_method_new(const uint8_t *method_name);
+Method *txkit_method_new(const uint8_t *method_name);
 
 #ifdef __cplusplus
 } // extern "C"
