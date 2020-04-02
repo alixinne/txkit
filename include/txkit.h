@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "txkit_types.h"
 
 /**
  * No error occurred
@@ -42,6 +43,10 @@ typedef struct Context Context;
  */
 typedef struct Image Image;
 
+typedef struct MappedImageDataRead MappedImageDataRead;
+
+typedef struct MappedImageDataWrite MappedImageDataWrite;
+
 /**
  * Wrapped method for FFI
  */
@@ -67,33 +72,6 @@ Context *txkit_context_new_gpu(void);
 const int8_t *txkit_get_last_error(void);
 
 /**
- * Return the number of channels of the image
- *
- * # Parameters
- *
- * * `image`: target image
- */
-uint32_t txkit_image_channels(const Image *image);
-
-/**
- * Return a pointer to the image data
- *
- * # Parameters
- *
- * * `image`: target image
- */
-const void *txkit_image_data(const Image *image);
-
-/**
- * Return the depth (Z size) of the image
- *
- * # Parameters
- *
- * * `image`: target image
- */
-uint32_t txkit_image_depth(const Image *image);
-
-/**
  * Destroy an image
  *
  * # Parameters
@@ -101,6 +79,15 @@ uint32_t txkit_image_depth(const Image *image);
  * * `image`: image to destroy
  */
 void txkit_image_destroy(Image *image);
+
+/**
+ * Return the dimensions of the image
+ *
+ * # Parameters
+ *
+ * * `image`: target image
+ */
+ImageDim txkit_image_dim(const Image *image);
 
 /**
  * Return the element type of the image
@@ -112,51 +99,148 @@ void txkit_image_destroy(Image *image);
 ImageDataType txkit_image_element_type(const Image *image);
 
 /**
- * Return the height (Y size) of the image
+ * Map the image pixels for read access. The image must be unmapped after being used.
  *
  * # Parameters
  *
- * * `image`: target image
+ * * `image`: image to map for read access
  */
-uint32_t txkit_image_height(const Image *image);
+MappedImageDataRead *txkit_image_map_read(const Image *image);
 
 /**
- * Create a new unsigned byte image
+ * Get a pointer to the image pixels through the given map.
  *
  * # Parameters
  *
- * * `width`: width of the image
- * * `height`: height of the image
- * * `channels`: number of channels in the image
+ * * `read_map`: map to access
  *
  * # Returns
  *
+ * Pointer to the pixel data, or null if the conversion failed.
  */
-Image *txkit_image_new_f32(uintptr_t width, uintptr_t height, uintptr_t channels);
+const float *txkit_image_map_read_data_f32(const MappedImageDataRead *read_map);
 
 /**
- * Create a new unsigned byte image
+ * Get a pointer to the image pixels through the given map.
  *
  * # Parameters
  *
- * * `width`: width of the image
- * * `height`: height of the image
- * * `channels`: number of channels in the image
+ * * `read_map`: map to access
+ *
+ * # Returns
+ *
+ * Pointer to the pixel data, or null if the conversion failed.
+ */
+const uint8_t *txkit_image_map_read_data_u8(const MappedImageDataRead *read_map);
+
+/**
+ * Map the image pixels for write access. The image must be unmapped after being used.
+ *
+ * # Parameters
+ *
+ * * `image`: image to map for write access
+ */
+MappedImageDataWrite *txkit_image_map_write(Image *image);
+
+/**
+ * Get a pointer to the image pixels through the given map.
+ *
+ * # Parameters
+ *
+ * * `write_map`: map to access
+ *
+ * # Returns
+ *
+ * Pointer to the pixel data, or null if the conversion failed.
+ */
+float *txkit_image_map_write_data_f32(MappedImageDataWrite *write_map);
+
+/**
+ * Get a pointer to the image pixels through the given map.
+ *
+ * # Parameters
+ *
+ * * `write_map`: map to access
+ *
+ * # Returns
+ *
+ * Pointer to the pixel data, or null if the conversion failed.
+ */
+uint8_t *txkit_image_map_write_data_u8(MappedImageDataWrite *write_map);
+
+/**
+ * Create a new image for CPU-based computations
+ *
+ * # Parameters
+ *
+ * * `dim`: dimensions of the image
+ * * `element_type`: type of the elements in the image
  *
  * # Returns
  *
  * Allocated image.
  */
-Image *txkit_image_new_u8(uintptr_t width, uintptr_t height, uintptr_t channels);
+Image *txkit_image_new_cpu(ImageDim dim, ImageDataType element_type);
 
 /**
- * Return the width (X size) of the image
+ * Create a new 1D image for GPU-based computations
  *
  * # Parameters
  *
- * * `image`: target image
+ * * `dim`: dimensions of the image
+ * * `element_type`: type of the elements in the image
+ *
+ * # Returns
+ *
+ * Allocated image.
  */
-uint32_t txkit_image_width(const Image *image);
+Image *txkit_image_new_gpu_1d(ImageDim dim, ImageDataType element_type, const Context *context);
+
+/**
+ * Create a new 2D image for GPU-based computations
+ *
+ * # Parameters
+ *
+ * * `dim`: dimensions of the image
+ * * `element_type`: type of the elements in the image
+ *
+ * # Returns
+ *
+ * Allocated image.
+ */
+Image *txkit_image_new_gpu_2d(ImageDim dim, ImageDataType element_type, const Context *context);
+
+/**
+ * Create a new 3D image for GPU-based computations
+ *
+ * # Parameters
+ *
+ * * `dim`: dimensions of the image
+ * * `element_type`: type of the elements in the image
+ *
+ * # Returns
+ *
+ * Allocated image.
+ */
+Image *txkit_image_new_gpu_3d(ImageDim dim, ImageDataType element_type, const Context *context);
+
+/**
+ * Unmap a mapped image.
+ *
+ * # Parameters
+ *
+ * * `read_map`: mapped image object
+ */
+void txkit_image_unmap_read(MappedImageDataRead *read_map);
+
+/**
+ * Unmap a mapped image.
+ *
+ * # Parameters
+ *
+ * * `write_map`: mapped image object
+ */
+void txkit_image_unmap_write(MappedImageDataWrite *write_map);
 
 /**
  * Compute an image using the given method
@@ -190,7 +274,7 @@ void txkit_method_destroy(Method *method);
  * Null pointer if an error occurred creating the method, otherwise pointer to the allocated
  * method.
  */
-Method *txkit_method_new(const uint8_t *method_name);
+Method *txkit_method_new(const char *method_name);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -6,6 +6,7 @@ use tinygl::prelude::*;
 use tinygl::wrappers::GlHandle;
 
 use crate::context::Context;
+use crate::image::gpu::ImageDimGpuExt;
 use crate::image::Image;
 use crate::method::*;
 
@@ -59,40 +60,51 @@ impl Method for Whitenoise {
                     );
                 }
 
-                let dim = cgmath::vec3(tgt.width() as u32, tgt.height() as u32, tgt.depth() as u32);
+                let dim = tgt.dim().into_cgmath();
                 let gpu = self.gpu.as_ref().unwrap();
 
-                gpu_context.render_to_framebuffer(tgt, |gl| {
-                    gpu.program.use_program(gl);
-                    gpu.program.set_i_resolution(gl, dim);
+                tgt.as_gpu_image_mut()
+                    .ok_or(crate::method::Error::FormatNotSupported)
+                    .and_then(|tgt| {
+                        gpu_context.render_to_framebuffer(tgt, |gl| {
+                            gpu.program.use_program(gl);
+                            gpu.program.set_i_resolution(gl, dim);
 
-                    unsafe {
-                        gl.draw_arrays(tinygl::gl::TRIANGLES, 0, 3);
-                    }
+                            unsafe {
+                                gl.draw_arrays(tinygl::gl::TRIANGLES, 0, 3);
+                            }
 
-                    Ok(())
-                })
+                            Ok(())
+                        })
+                    })
             }
-            Context::Cpu(cpu_context) => cpu_context.thread_pool.install(|| match tgt {
-                Image::UInt8(ref mut data) => {
+            Context::Cpu(cpu_context) => {
+                let mut data_mut = tgt.data_mut()?;
+
+                if let Some(data) = data_mut.as_u8_nd_array_mut() {
                     let sz = data.dim();
 
-                    par_azip!((index idx, o in data) {
-                        *o = (Self::hash_idx(idx, sz) * 255.0f32) as u8;
+                    cpu_context.thread_pool.install(|| {
+                        par_azip!((index idx, o in data) {
+                            *o = (Self::hash_idx(idx, sz) * 255.0f32) as u8;
+                        });
                     });
 
                     Ok(())
-                }
-                Image::Float32(ref mut data) => {
+                } else if let Some(data) = data_mut.as_f32_nd_array_mut() {
                     let sz = data.dim();
 
-                    par_azip!((index idx, o in data) {
-                        *o = Self::hash_idx(idx, sz);
+                    cpu_context.thread_pool.install(|| {
+                        par_azip!((index idx, o in data) {
+                            *o = Self::hash_idx(idx, sz);
+                        });
                     });
 
                     Ok(())
+                } else {
+                    Err(crate::method::Error::FormatNotSupported)
                 }
-            }),
+            }
         }
     }
 }
@@ -100,11 +112,12 @@ impl Method for Whitenoise {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::image::{ImageDataType, ImageDim};
 
     #[test]
-    fn whitenoise_cpu() {
+    fn debug_cpu() {
         let mut ctx = Context::new_cpu().unwrap();
-        let mut img = Image::new_u8(16, 16, 4);
+        let mut img = Image::new_cpu(ImageDim::new(16, 16, 4), ImageDataType::UInt8);
 
         assert_eq!(Ok(()), Whitenoise::new().compute(&mut ctx, &mut img));
     }

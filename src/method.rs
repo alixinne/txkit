@@ -17,6 +17,16 @@ pub enum Error {
     ContextCreationFailed(String),
     #[fail(display = "method initialization failed: {}", 0)]
     MethodInitializationFailed(String),
+    #[fail(display = "mapping image failed: {}", 0)]
+    MappingFailed(crate::image::ImageDataError),
+    #[fail(display = "opengl error: {}", 0)]
+    GlError(String),
+}
+
+impl From<crate::image::ImageDataError> for Error {
+    fn from(error: crate::image::ImageDataError) -> Self {
+        Self::MappingFailed(error)
+    }
 }
 
 /// Represents a procedural texturing method
@@ -40,7 +50,7 @@ pub struct MethodBox {
 /// Null pointer if an error occurred creating the method, otherwise pointer to the allocated
 /// method.
 #[no_mangle]
-pub extern "C" fn txkit_method_new(method_name: *const u8) -> *mut MethodBox {
+pub extern "C" fn txkit_method_new(method_name: *const libc::c_char) -> *mut MethodBox {
     crate::api::wrap_result(if method_name == std::ptr::null() {
         Err(Error::InvalidMethodName)
     } else {

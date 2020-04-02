@@ -39,10 +39,13 @@ fn main() {
             cpp_compat: true,
             language: cbindgen::Language::C,
             include_guard: Some("TXKIT_H".to_owned()),
+            includes: vec!["txkit_types.h".to_owned()],
             ..Default::default()
         })
         .with_crate(env::var("CARGO_MANIFEST_DIR").unwrap())
         .rename_item("MethodBox", "Method")
+        .rename_item("MappedImageDataReadBox", "MappedImageDataRead")
+        .rename_item("MappedImageDataWriteBox", "MappedImageDataWrite")
         .generate()
         .expect("unable to generate C bindings")
         .write_to_file(

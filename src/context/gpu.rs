@@ -6,7 +6,7 @@ use glutin::{Context, ContextBuilder, PossiblyCurrent};
 use tinygl::prelude::*;
 use tinygl::wrappers::GlHandle;
 
-use crate::image::Image;
+use crate::image::{gpu::GpuImageData, ImageDim};
 
 /// txkit internal context for GPU computations
 #[allow(dead_code)]
@@ -63,7 +63,7 @@ impl GpuContext {
         // Build an empty VAO for quad rendering
         let vao = unsafe { gl.create_vertex_array() }?;
 
-        let rtt = TextureRenderTarget::new(&gl, 256, 256)?;
+        let rtt = TextureRenderTarget::new(&gl)?;
 
         Ok(Self {
             el,
@@ -76,63 +76,58 @@ impl GpuContext {
 
     pub fn render_to_framebuffer(
         &mut self,
-        tgt: &mut Image,
+        tgt: &mut GpuImageData,
         f: impl FnOnce(&Rc<tinygl::Context>) -> Result<(), crate::method::Error>,
     ) -> Result<(), crate::method::Error> {
         // Setup framebuffer
-        // TODO: Proper channels and element type
-        self.rtt.alloc(&self.gl, tgt.width(), tgt.height());
+        let dim = tgt.dim;
 
         // Set target framebuffer
         self.rtt
             .framebuffer
             .bind(&*self.gl, tinygl::gl::FRAMEBUFFER);
 
+        self.rtt.alloc(&self.gl, dim);
+
         unsafe {
             // Set viewport
-            self.gl
-                .viewport(0, 0, tgt.width() as i32, tgt.height() as i32);
+            self.gl.viewport(0, 0, dim.width as i32, dim.height as i32);
 
             // Bind VAO
             self.gl.bind_vertex_array(Some(self.vao));
+
+            // Set texture
+            self.rtt.framebuffer.texture(
+                &*self.gl,
+                tinygl::gl::FRAMEBUFFER,
+                tinygl::gl::COLOR_ATTACHMENT0,
+                Some(&tgt.texture),
+                0,
+            );
+
+            // Setup draw buffers
+            //self.gl.draw_buffers(&[tinygl::gl::COLOR_ATTACHMENT0]);
         }
 
         // Call rendering method
         let r = match f(&self.gl) {
-            Ok(_) => {
-                // Fetch result into image
-                self.rtt
-                    .texture_main
-                    .bind(&*self.gl, tinygl::gl::TEXTURE_2D);
-
-                unsafe {
-                    // TODO: Check slice construction for ndarray
-                    self.gl.get_tex_image_u8_slice(
-                        tinygl::gl::TEXTURE_2D,
-                        0,
-                        tinygl::gl::RGBA,
-                        tinygl::gl::FLOAT,
-                        Some(std::slice::from_raw_parts(
-                            tgt.as_ptr() as *const u8,
-                            tgt.width()
-                                * tgt.height()
-                                * tgt.depth()
-                                * tgt.channels()
-                                * std::mem::size_of::<f32>(),
-                        )),
-                    );
-
-                    // Unbind texture
-                    self.gl.bind_texture(tinygl::gl::TEXTURE_2D, None);
-                }
-
-                Ok(())
-            }
+            Ok(_) => tgt
+                .start_download()
+                .map_err(|msg| crate::method::Error::GlError(msg)),
             other => other,
         };
 
         // Cleanup
         unsafe {
+            // Unbind texture from framebuffer
+            self.rtt.framebuffer.texture(
+                &*self.gl,
+                tinygl::gl::FRAMEBUFFER,
+                tinygl::gl::COLOR_ATTACHMENT0,
+                None,
+                0,
+            );
+
             self.gl.bind_vertex_array(None);
             self.gl.bind_framebuffer(tinygl::gl::FRAMEBUFFER, None);
         }
@@ -144,71 +139,21 @@ impl GpuContext {
 pub struct TextureRenderTarget {
     pub framebuffer: GlHandle<tinygl::wrappers::Framebuffer>,
     pub depthbuffer: GlHandle<tinygl::wrappers::Renderbuffer>,
-    pub texture_main: GlHandle<tinygl::wrappers::Texture>,
     current_size: Option<cgmath::Vector2<i32>>,
 }
 
 impl TextureRenderTarget {
-    pub fn new(
-        gl: &Rc<tinygl::Context>,
-        width: usize,
-        height: usize,
-    ) -> Result<TextureRenderTarget, String> {
+    pub fn new(gl: &Rc<tinygl::Context>) -> Result<TextureRenderTarget, String> {
         // Create objects
-        let mut this = Self {
+        Ok(Self {
             framebuffer: GlHandle::new(gl, tinygl::wrappers::Framebuffer::new(gl)?),
             depthbuffer: GlHandle::new(gl, tinygl::wrappers::Renderbuffer::new(gl)?),
-            texture_main: GlHandle::new(gl, tinygl::wrappers::Texture::new(gl)?),
             current_size: None,
-        };
-
-        // Initial allocation
-        this.alloc(gl, width, height);
-
-        // Don't use mipmaps
-        unsafe {
-            for tex in [&this.texture_main].iter() {
-                tex.bind(gl, tinygl::gl::TEXTURE_2D);
-                gl.tex_parameter_i32(
-                    tinygl::gl::TEXTURE_2D,
-                    tinygl::gl::TEXTURE_MIN_FILTER,
-                    tinygl::gl::NEAREST as i32,
-                );
-                gl.tex_parameter_i32(
-                    tinygl::gl::TEXTURE_2D,
-                    tinygl::gl::TEXTURE_MAG_FILTER,
-                    tinygl::gl::NEAREST as i32,
-                );
-            }
-
-            gl.bind_texture(tinygl::gl::TEXTURE_2D, None);
-        }
-
-        // Setup bindings
-        unsafe {
-            this.framebuffer.bind(gl, tinygl::gl::FRAMEBUFFER);
-            this.framebuffer.renderbuffer(
-                gl,
-                tinygl::gl::FRAMEBUFFER,
-                tinygl::gl::DEPTH_ATTACHMENT,
-                Some(&this.depthbuffer),
-            );
-            this.framebuffer.texture(
-                gl,
-                tinygl::gl::FRAMEBUFFER,
-                tinygl::gl::COLOR_ATTACHMENT0,
-                Some(&this.texture_main),
-                0,
-            );
-            gl.draw_buffers(&[tinygl::gl::COLOR_ATTACHMENT0, tinygl::gl::COLOR_ATTACHMENT1]);
-            gl.bind_framebuffer(tinygl::gl::FRAMEBUFFER, None);
-        }
-
-        Ok(this)
+        })
     }
 
-    pub fn alloc(&mut self, gl: &Rc<tinygl::Context>, width: usize, height: usize) {
-        let new_size = cgmath::vec2(width as i32, height as i32);
+    pub fn alloc(&mut self, gl: &Rc<tinygl::Context>, dim: ImageDim) {
+        let new_size = cgmath::vec2(dim.width as i32, dim.height as i32);
 
         if !self.current_size.map(|cs| cs == new_size).unwrap_or(false) {
             // Setup storage
@@ -222,24 +167,15 @@ impl TextureRenderTarget {
                     new_size.y,
                 );
                 gl.bind_renderbuffer(tinygl::gl::RENDERBUFFER, None);
+            }
 
-                // Textures
-                for tex in [&self.texture_main].iter() {
-                    tex.bind(gl, tinygl::gl::TEXTURE_2D);
-                    gl.tex_image_2d(
-                        tinygl::gl::TEXTURE_2D,
-                        0,
-                        tinygl::gl::RGBA32F as i32,
-                        new_size.x,
-                        new_size.y,
-                        0,
-                        tinygl::gl::RGBA,
-                        tinygl::gl::FLOAT,
-                        None,
-                    );
-                }
-
-                gl.bind_texture(tinygl::gl::TEXTURE_2D, None);
+            if self.current_size.is_none() {
+                self.framebuffer.renderbuffer(
+                    gl,
+                    tinygl::gl::FRAMEBUFFER,
+                    tinygl::gl::DEPTH_ATTACHMENT,
+                    Some(&self.depthbuffer),
+                );
             }
 
             // Update size
