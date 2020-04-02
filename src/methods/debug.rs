@@ -32,7 +32,7 @@ impl Debug {
         Self::default()
     }
 
-    fn debug_idx((j, i, _k, l): (usize, usize, usize, usize)) -> f32 {
+    fn debug_idx((_k, j, i, l): (usize, usize, usize, usize)) -> f32 {
         match l {
             0 => i as f32,
             1 => j as f32,

@@ -33,7 +33,7 @@ impl Whitenoise {
     }
 
     fn hash_idx(
-        (j, i, k, l): (usize, usize, usize, usize),
+        (k, j, i, l): (usize, usize, usize, usize),
         sz: (usize, usize, usize, usize),
     ) -> f32 {
         let mut x = ((i + j * sz.0 + k * sz.0 * sz.1) * sz.3 + l) as u32;
