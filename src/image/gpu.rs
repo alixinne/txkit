@@ -266,6 +266,53 @@ impl GpuImageData {
             Ok(())
         }
     }
+
+    unsafe fn bind_buffer(
+        &self,
+        usage: u32,
+        buffer: &impl std::ops::Deref<Target = Buffer>,
+    ) -> *mut u8 {
+        if let Some(fence_sync) = self.transfer_sync.borrow_mut().take() {
+            loop {
+                match self.gl.client_wait_sync(
+                    fence_sync,
+                    tinygl::gl::SYNC_FLUSH_COMMANDS_BIT,
+                    10_000_000,
+                ) {
+                    tinygl::gl::ALREADY_SIGNALED | tinygl::gl::CONDITION_SATISFIED => {
+                        break;
+                    }
+                    tinygl::gl::TIMEOUT_EXPIRED => {
+                        // keep waiting
+                    }
+                    tinygl::gl::WAIT_FAILED => {
+                        // TODO: What to do here?
+                        break;
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
+
+        let ptr = self.gl.map_buffer_range(
+            tinygl::gl::PIXEL_PACK_BUFFER,
+            0,
+            self.byte_size() as i32,
+            usage,
+        );
+
+        self.gl.bind_buffer(tinygl::gl::PIXEL_PACK_BUFFER, None);
+
+        ptr
+    }
+
+    unsafe fn unbind_buffer(&self, buffer: &impl std::ops::Deref<Target = Buffer>) {
+        buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
+        self.gl.unmap_buffer(tinygl::gl::PIXEL_PACK_BUFFER);
+        self.gl.bind_buffer(tinygl::gl::PIXEL_PACK_BUFFER, None);
+    }
 }
 
 impl Drop for GpuImageData {
@@ -302,46 +349,14 @@ impl HasBuffer for GpuImageData {
         let buffer = self.buffer.borrow();
 
         unsafe {
-            if let Some(fence_sync) = self.transfer_sync.borrow_mut().take() {
-                loop {
-                    match self.gl.client_wait_sync(
-                        fence_sync,
-                        tinygl::gl::SYNC_FLUSH_COMMANDS_BIT,
-                        10_000_000,
-                    ) {
-                        tinygl::gl::ALREADY_SIGNALED | tinygl::gl::CONDITION_SATISFIED => {
-                            break;
-                        }
-                        tinygl::gl::TIMEOUT_EXPIRED => {
-                            // keep waiting
-                        }
-                        tinygl::gl::WAIT_FAILED => {
-                            // TODO: What to do here?
-                            break;
-                        }
-                        _ => {}
-                    }
-                }
-            }
-
-            self.gl
-                .bind_buffer(tinygl::gl::PIXEL_PACK_BUFFER, Some(buffer.name()));
-
-            let ptr = self.gl.map_buffer_range(
-                tinygl::gl::PIXEL_PACK_BUFFER,
-                0,
-                self.byte_size() as i32,
-                tinygl::gl::MAP_READ_BIT,
-            );
-
+            let ptr = self.bind_buffer(tinygl::gl::MAP_READ_BIT, &buffer);
             (buffer, ptr)
         }
     }
 
     fn unmap(&self) {
         unsafe {
-            self.gl.unmap_buffer(tinygl::gl::PIXEL_PACK_BUFFER);
-            self.gl.bind_buffer(tinygl::gl::PIXEL_PACK_BUFFER, None);
+            self.unbind_buffer(&self.buffer.borrow());
         }
     }
 }
@@ -356,24 +371,17 @@ impl HasBufferMut for GpuImageData {
         let buffer = self.buffer.borrow_mut();
 
         unsafe {
-            self.gl
-                .bind_buffer(tinygl::gl::PIXEL_PACK_BUFFER, Some(buffer.name()));
-
-            let ptr = self.gl.map_buffer_range(
-                tinygl::gl::PIXEL_PACK_BUFFER,
-                0,
-                self.byte_size() as i32,
-                tinygl::gl::READ_WRITE,
+            let ptr = self.bind_buffer(
+                tinygl::gl::MAP_READ_BIT | tinygl::gl::MAP_WRITE_BIT,
+                &buffer,
             );
-
             (buffer, ptr)
         }
     }
 
     fn unmap_mut(&mut self) {
         unsafe {
-            self.gl.unmap_buffer(tinygl::gl::PIXEL_PACK_BUFFER);
-            self.gl.bind_buffer(tinygl::gl::PIXEL_PACK_BUFFER, None);
+            self.unbind_buffer(&self.buffer.borrow_mut());
         }
     }
 }
