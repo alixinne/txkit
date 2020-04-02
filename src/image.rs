@@ -120,6 +120,33 @@ impl Image {
                 })
             })
     }
+
+    #[cfg(not(feature = "gpu"))]
+    pub fn new_gpu_1d(
+        _dim: ImageDim,
+        _element_type: ImageDataType,
+        _context: &crate::context::Context,
+    ) -> Result<Self, ImageCreationError> {
+        Err(ImageCreationError::ContextNotSupported)
+    }
+
+    #[cfg(not(feature = "gpu"))]
+    pub fn new_gpu_2d(
+        _dim: ImageDim,
+        _element_type: ImageDataType,
+        _context: &crate::context::Context,
+    ) -> Result<Self, ImageCreationError> {
+        Err(ImageCreationError::ContextNotSupported)
+    }
+
+    #[cfg(not(feature = "gpu"))]
+    pub fn new_gpu_3d(
+        _dim: ImageDim,
+        _element_type: ImageDataType,
+        _context: &crate::context::Context,
+    ) -> Result<Self, ImageCreationError> {
+        Err(ImageCreationError::ContextNotSupported)
+    }
 }
 
 /// Create a new image for CPU-based computations

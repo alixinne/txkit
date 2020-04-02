@@ -60,9 +60,12 @@ impl Context {
 }
 
 #[macro_export]
+#[cfg(feature = "cpu")]
 macro_rules! cpu_compute {
     ($cpu_context:ident, $tgt:ident, $idx:ident => $fn:expr) => {{
         use crate::image::IntoElementType;
+        use ndarray::par_azip;
+
         let mut data_mut = $tgt.data_mut()?;
 
         if let Some(data) = data_mut.as_u8_nd_array_mut() {
@@ -85,6 +88,13 @@ macro_rules! cpu_compute {
             Err(crate::method::Error::FormatNotSupported)
         }
     }}
+}
+
+#[cfg(not(feature = "cpu"))]
+macro_rules! cpu_compute {
+    ($cpu_context:ident, $tgt:ident, $idx:ident => $fn:expr) => {{
+        Err(crate::method::Error::ContextNotSupported)
+    }};
 }
 
 #[no_mangle]
