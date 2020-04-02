@@ -6,8 +6,7 @@ use tinygl::prelude::*;
 use tinygl::wrappers::GlHandle;
 
 use crate::context::Context;
-use crate::image::gpu::ImageDimGpuExt;
-use crate::image::Image;
+use crate::image::prelude::*;
 use crate::method::*;
 
 #[derive(Default)]

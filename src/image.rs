@@ -5,11 +5,16 @@ pub(crate) mod gpu;
 mod image_data;
 pub use image_data::*;
 
+mod image_data_type;
+pub use image_data_type::*;
+
 mod image_dimensions;
 pub use image_dimensions::*;
 
 mod into_element_type;
 pub use into_element_type::*;
+
+pub mod prelude;
 
 use failure::Fail;
 
@@ -29,25 +34,6 @@ impl std::ops::Deref for Image {
 impl std::ops::DerefMut for Image {
     fn deref_mut(&mut self) -> &mut <Self as std::ops::Deref>::Target {
         self.data.as_mut()
-    }
-}
-
-/// Type of elements in an image
-#[repr(u32)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ImageDataType {
-    /// Unsigned bytes (8 bits)
-    UInt8,
-    /// Single-precision floating point (32 bits)
-    Float32,
-}
-
-impl ImageDataType {
-    pub fn byte_size(&self) -> usize {
-        match self {
-            Self::UInt8 => std::mem::size_of::<u8>(),
-            Self::Float32 => std::mem::size_of::<f32>(),
-        }
     }
 }
 

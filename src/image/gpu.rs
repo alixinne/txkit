@@ -1,79 +1,20 @@
-use std::cell::{Ref, RefCell, RefMut};
+use std::cell::RefCell;
 use std::rc::Rc;
 
-use tinygl::gl;
 use tinygl::prelude::*;
 use tinygl::wrappers::{Buffer, GlRefHandle, Texture};
 
-use super::{
-    ImageData, ImageDataBase, ImageDataError, ImageDataType, ImageDim, MappedImageData,
-    MappedImageDataMut,
-};
+use super::*;
 
 pub struct GpuImageData {
     gl: Rc<tinygl::Context>,
     pub(crate) texture: Texture,
-    pub(crate) buffer: RefCell<Buffer>,
+    pub(crate) buffer: Buffer,
     pub(crate) element_type: ImageDataType,
     pub(crate) dim: ImageDim,
 
     target: u32,
     transfer_sync: RefCell<Option<<tinygl::glow::Context as tinygl::glow::HasContext>::Fence>>,
-}
-
-pub trait ImageDimGpuExt {
-    fn internal_format(&self, element_type: ImageDataType) -> Result<i32, String>;
-
-    fn unsized_format(&self) -> Result<u32, String>;
-
-    fn into_cgmath(&self) -> cgmath::Vector3<u32>;
-}
-
-pub trait ElementTypeGpuExt {
-    fn format_type(&self) -> u32;
-}
-
-impl ImageDimGpuExt for ImageDim {
-    fn internal_format(&self, element_type: ImageDataType) -> Result<i32, String> {
-        match element_type {
-            ImageDataType::UInt8 => match self.channels {
-                1 => Ok(gl::R8 as i32),
-                2 => Ok(gl::RG8 as i32),
-                3 => Ok(gl::RGB8 as i32),
-                4 => Ok(gl::RGBA8 as i32),
-                _ => Err(format!("unsupported number of channels: {}", self.channels)),
-            },
-            ImageDataType::Float32 => match self.channels {
-                1 => Ok(gl::R32F as i32),
-                2 => Ok(gl::RG32F as i32),
-                3 => Ok(gl::RGB32F as i32),
-                4 => Ok(gl::RGBA32F as i32),
-                _ => Err(format!("unsupported number of channels: {}", self.channels)),
-            },
-        }
-    }
-    fn unsized_format(&self) -> Result<u32, String> {
-        match self.channels {
-            1 => Ok(gl::RED),
-            2 => Ok(gl::RG),
-            3 => Ok(gl::RGB),
-            4 => Ok(gl::RGBA),
-            _ => Err(format!("unsupported number of channels: {}", self.channels)),
-        }
-    }
-
-    fn into_cgmath(&self) -> cgmath::Vector3<u32> {
-        cgmath::vec3(self.width as u32, self.height as u32, self.depth as u32)
-    }
-}
-
-impl ElementTypeGpuExt for ImageDataType {
-    fn format_type(&self) -> u32 {
-        match self {
-            ImageDataType::UInt8 => gl::UNSIGNED_BYTE,
-            ImageDataType::Float32 => gl::FLOAT,
-        }
-    }
 }
 
 impl GpuImageData {
@@ -117,7 +58,7 @@ impl GpuImageData {
         res.map(|()| Self {
             gl: gl.clone(),
             texture: texture.into_inner(),
-            buffer: RefCell::new(buffer.into_inner()),
+            buffer: buffer.into_inner(),
             element_type,
             dim,
             transfer_sync: RefCell::new(None),
@@ -237,8 +178,7 @@ impl GpuImageData {
 
     pub fn start_download(&mut self) -> Result<(), String> {
         unsafe {
-            let buffer = self.buffer.borrow();
-            buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
+            self.buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
             self.gl.buffer_data_size(
                 tinygl::gl::PIXEL_PACK_BUFFER,
                 self.byte_size() as i32,
@@ -267,11 +207,7 @@ impl GpuImageData {
         }
     }
 
-    unsafe fn bind_buffer(
-        &self,
-        usage: u32,
-        buffer: &impl std::ops::Deref<Target = Buffer>,
-    ) -> *mut u8 {
+    unsafe fn map_buffer(&self, usage: u32) -> *mut u8 {
         if let Some(fence_sync) = self.transfer_sync.borrow_mut().take() {
             loop {
                 match self.gl.client_wait_sync(
@@ -294,7 +230,7 @@ impl GpuImageData {
             }
         }
 
-        buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
+        self.buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
 
         let ptr = self.gl.map_buffer_range(
             tinygl::gl::PIXEL_PACK_BUFFER,
@@ -308,8 +244,8 @@ impl GpuImageData {
         ptr
     }
 
-    unsafe fn unbind_buffer(&self, buffer: &impl std::ops::Deref<Target = Buffer>) {
-        buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
+    unsafe fn unmap_buffer(&self) {
+        self.buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
         self.gl.unmap_buffer(tinygl::gl::PIXEL_PACK_BUFFER);
         self.gl.bind_buffer(tinygl::gl::PIXEL_PACK_BUFFER, None);
     }
@@ -320,7 +256,7 @@ impl Drop for GpuImageData {
         use tinygl::wrappers::GlDrop;
 
         self.texture.drop(&*self.gl);
-        self.buffer.borrow_mut().drop(&*self.gl);
+        self.buffer.drop(&*self.gl);
     }
 }
 
@@ -339,83 +275,55 @@ impl ImageDataBase for GpuImageData {
     }
 }
 
-trait HasBuffer {
-    fn buffer(&self) -> (Ref<Buffer>, *const u8);
-    fn unmap(&self);
-}
-
-impl HasBuffer for GpuImageData {
-    fn buffer(&self) -> (Ref<Buffer>, *const u8) {
-        let buffer = self.buffer.borrow();
-
-        unsafe {
-            let ptr = self.bind_buffer(tinygl::gl::MAP_READ_BIT, &buffer);
-            (buffer, ptr)
-        }
-    }
-
-    fn unmap(&self) {
-        unsafe {
-            self.unbind_buffer(&self.buffer.borrow());
-        }
-    }
-}
-
-trait HasBufferMut {
-    fn buffer_mut(&mut self) -> (RefMut<Buffer>, *mut u8);
-    fn unmap_mut(&mut self);
-}
-
-impl HasBufferMut for GpuImageData {
-    fn buffer_mut(&mut self) -> (RefMut<Buffer>, *mut u8) {
-        let buffer = self.buffer.borrow_mut();
-
-        unsafe {
-            let ptr = self.bind_buffer(
-                tinygl::gl::MAP_READ_BIT | tinygl::gl::MAP_WRITE_BIT,
-                &buffer,
-            );
-            (buffer, ptr)
-        }
-    }
-
-    fn unmap_mut(&mut self) {
-        unsafe {
-            self.unbind_buffer(&self.buffer.borrow_mut());
-        }
-    }
-}
-
-struct MappedGpuImage<'t, T: 't> {
-    tgt: &'t T,
+struct MappedGpuImage<'t> {
+    tgt: &'t GpuImageData,
     mapped_ptr: *const u8,
 }
 
-struct MappedGpuImageMut<'t, T: 't> {
-    tgt: &'t mut T,
+struct MappedGpuImageMut<'t> {
+    tgt: &'t mut GpuImageData,
     mapped_ptr: *mut u8,
 }
 
-impl<'t, T: HasBuffer + 't> MappedGpuImage<'t, T> {
-    fn map(tgt: &'t T) -> Result<Self, ImageDataError> {
-        let (_, mapped_ptr) = tgt.buffer();
+impl<'t> MappedGpuImage<'t> {
+    fn map(tgt: &'t GpuImageData) -> Result<Self, ImageDataError> {
+        let mapped_ptr = unsafe { tgt.map_buffer(tinygl::gl::MAP_READ_BIT) };
+
         Ok(Self { tgt, mapped_ptr })
     }
 }
 
-impl<'t, T: HasBufferMut + 't> MappedGpuImageMut<'t, T> {
-    fn map(tgt: &'t mut T) -> Result<Self, ImageDataError> {
-        let (_, mapped_ptr) = tgt.buffer_mut();
+impl Drop for MappedGpuImage<'_> {
+    fn drop(&mut self) {
+        unsafe {
+            self.tgt.unmap_buffer();
+        }
+    }
+}
+
+impl<'t> MappedGpuImageMut<'t> {
+    fn map(tgt: &'t mut GpuImageData) -> Result<Self, ImageDataError> {
+        let mapped_ptr =
+            unsafe { tgt.map_buffer(tinygl::gl::MAP_READ_BIT | tinygl::gl::MAP_WRITE_BIT) };
+
         Ok(Self { tgt, mapped_ptr })
     }
 }
 
-impl MappedImageData for MappedGpuImage<'_, GpuImageData> {
+impl Drop for MappedGpuImageMut<'_> {
+    fn drop(&mut self) {
+        unsafe {
+            self.tgt.unmap_buffer();
+        }
+    }
+}
+
+impl MappedImageData for MappedGpuImage<'_> {
     fn as_f32_nd_array(&self) -> Option<ndarray::ArrayView4<f32>> {
         if let ImageDataType::Float32 = self.tgt.element_type {
             unsafe {
                 Some(ndarray::ArrayView4::from_shape_ptr(
-                    <ImageDim as Into<(usize, usize, usize, usize)>>::into(self.tgt.dim),
+                    self.tgt.dim.into_nd_array_dim(),
                     std::mem::transmute::<*const u8, *const f32>(self.mapped_ptr),
                 ))
             }
@@ -428,7 +336,7 @@ impl MappedImageData for MappedGpuImage<'_, GpuImageData> {
         if let ImageDataType::UInt8 = self.tgt.element_type {
             unsafe {
                 Some(ndarray::ArrayView4::from_shape_ptr(
-                    <ImageDim as Into<(usize, usize, usize, usize)>>::into(self.tgt.dim),
+                    self.tgt.dim.into_nd_array_dim(),
                     self.mapped_ptr,
                 ))
             }
@@ -438,12 +346,12 @@ impl MappedImageData for MappedGpuImage<'_, GpuImageData> {
     }
 }
 
-impl MappedImageDataMut for MappedGpuImageMut<'_, GpuImageData> {
+impl MappedImageDataMut for MappedGpuImageMut<'_> {
     fn as_f32_nd_array_mut(&mut self) -> Option<ndarray::ArrayViewMut4<f32>> {
         if let ImageDataType::Float32 = self.tgt.element_type {
             unsafe {
                 Some(ndarray::ArrayViewMut4::from_shape_ptr(
-                    <ImageDim as Into<(usize, usize, usize, usize)>>::into(self.tgt.dim),
+                    self.tgt.dim.into_nd_array_dim(),
                     std::mem::transmute::<*mut u8, *mut f32>(self.mapped_ptr),
                 ))
             }
@@ -456,7 +364,7 @@ impl MappedImageDataMut for MappedGpuImageMut<'_, GpuImageData> {
         if let ImageDataType::UInt8 = self.tgt.element_type {
             unsafe {
                 Some(ndarray::ArrayViewMut4::from_shape_ptr(
-                    <ImageDim as Into<(usize, usize, usize, usize)>>::into(self.tgt.dim),
+                    self.tgt.dim.into_nd_array_dim(),
                     self.mapped_ptr,
                 ))
             }

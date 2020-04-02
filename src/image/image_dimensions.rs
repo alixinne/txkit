@@ -34,6 +34,10 @@ impl<T: num_traits::identities::One> ImageDimensions<T> {
             channels,
         }
     }
+
+    pub fn into_nd_array_dim(self) -> (T, T, T, T) {
+        <Self as Into<(T, T, T, T)>>::into(self)
+    }
 }
 
 impl<T> From<(T, T, T, T)> for ImageDimensions<T> {
@@ -54,3 +58,57 @@ impl<T> Into<(T, T, T, T)> for ImageDimensions<T> {
 }
 
 pub type ImageDim = ImageDimensions<usize>;
+
+#[cfg(feature = "gpu")]
+mod gpu {
+    use super::ImageDim;
+    use crate::image::ImageDataType;
+
+    use tinygl::gl;
+    use tinygl::prelude::cgmath;
+
+    pub trait ImageDimGpuExt {
+        fn internal_format(&self, element_type: ImageDataType) -> Result<i32, String>;
+
+        fn unsized_format(&self) -> Result<u32, String>;
+
+        fn into_cgmath(&self) -> cgmath::Vector3<u32>;
+    }
+
+    impl ImageDimGpuExt for ImageDim {
+        fn internal_format(&self, element_type: ImageDataType) -> Result<i32, String> {
+            match element_type {
+                ImageDataType::UInt8 => match self.channels {
+                    1 => Ok(gl::R8 as i32),
+                    2 => Ok(gl::RG8 as i32),
+                    3 => Ok(gl::RGB8 as i32),
+                    4 => Ok(gl::RGBA8 as i32),
+                    _ => Err(format!("unsupported number of channels: {}", self.channels)),
+                },
+                ImageDataType::Float32 => match self.channels {
+                    1 => Ok(gl::R32F as i32),
+                    2 => Ok(gl::RG32F as i32),
+                    3 => Ok(gl::RGB32F as i32),
+                    4 => Ok(gl::RGBA32F as i32),
+                    _ => Err(format!("unsupported number of channels: {}", self.channels)),
+                },
+            }
+        }
+        fn unsized_format(&self) -> Result<u32, String> {
+            match self.channels {
+                1 => Ok(gl::RED),
+                2 => Ok(gl::RG),
+                3 => Ok(gl::RGB),
+                4 => Ok(gl::RGBA),
+                _ => Err(format!("unsupported number of channels: {}", self.channels)),
+            }
+        }
+
+        fn into_cgmath(&self) -> cgmath::Vector3<u32> {
+            cgmath::vec3(self.width as u32, self.height as u32, self.depth as u32)
+        }
+    }
+}
+
+#[cfg(feature = "gpu")]
+pub use gpu::*;
