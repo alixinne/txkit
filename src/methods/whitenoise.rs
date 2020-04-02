@@ -79,31 +79,8 @@ impl Method for Whitenoise {
                     })
             }
             Context::Cpu(cpu_context) => {
-                let mut data_mut = tgt.data_mut()?;
-
-                if let Some(data) = data_mut.as_u8_nd_array_mut() {
-                    let sz = data.dim();
-
-                    cpu_context.thread_pool.install(|| {
-                        par_azip!((index idx, o in data) {
-                            *o = (Self::hash_idx(idx, sz) * 255.0f32) as u8;
-                        });
-                    });
-
-                    Ok(())
-                } else if let Some(data) = data_mut.as_f32_nd_array_mut() {
-                    let sz = data.dim();
-
-                    cpu_context.thread_pool.install(|| {
-                        par_azip!((index idx, o in data) {
-                            *o = Self::hash_idx(idx, sz);
-                        });
-                    });
-
-                    Ok(())
-                } else {
-                    Err(crate::method::Error::FormatNotSupported)
-                }
+                let sz = tgt.dim().into();
+                cpu_compute!(cpu_context, tgt, idx => Self::hash_idx(idx, sz))
             }
         }
     }

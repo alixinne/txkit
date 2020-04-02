@@ -74,27 +74,7 @@ impl Method for Debug {
                     })
             }
             Context::Cpu(cpu_context) => {
-                let mut data_mut = tgt.data_mut()?;
-
-                if let Some(data) = data_mut.as_u8_nd_array_mut() {
-                    cpu_context.thread_pool.install(|| {
-                        par_azip!((index idx, o in data) {
-                            *o = (Self::debug_idx(idx) * 255.0f32) as u8;
-                        });
-                    });
-
-                    Ok(())
-                } else if let Some(data) = data_mut.as_f32_nd_array_mut() {
-                    cpu_context.thread_pool.install(|| {
-                        par_azip!((index idx, o in data) {
-                            *o = Self::debug_idx(idx);
-                        });
-                    });
-
-                    Ok(())
-                } else {
-                    Err(crate::method::Error::FormatNotSupported)
-                }
+                cpu_compute!(cpu_context, tgt, idx => Self::debug_idx(idx))
             }
         }
     }

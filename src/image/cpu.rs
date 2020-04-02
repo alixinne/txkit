@@ -1,9 +1,6 @@
 use ndarray::{Array4, ArrayView4, ArrayViewMut4};
 
-use super::{
-    ImageData, ImageDataBase, ImageDataError, ImageDataType, ImageDim, MappedImageData,
-    MappedImageDataMut,
-};
+use super::*;
 
 pub struct NdArrayImageData<T> {
     data: Array4<T>,
@@ -16,31 +13,6 @@ impl<T: num_traits::identities::Zero + num_traits::identities::Zero + std::clone
         Self {
             data: Array4::<T>::zeros(Into::<(usize, usize, usize, usize)>::into(dim)),
         }
-    }
-}
-
-pub trait IntoElementType {
-    fn into_element_type() -> ImageDataType;
-    fn into_f32(&self) -> f32;
-}
-
-impl IntoElementType for f32 {
-    fn into_element_type() -> ImageDataType {
-        ImageDataType::Float32
-    }
-
-    fn into_f32(&self) -> f32 {
-        *self
-    }
-}
-
-impl IntoElementType for u8 {
-    fn into_element_type() -> ImageDataType {
-        ImageDataType::UInt8
-    }
-
-    fn into_f32(&self) -> f32 {
-        *self as f32 / 255.0f32
     }
 }
 

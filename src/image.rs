@@ -8,6 +8,9 @@ pub use image_data::*;
 mod image_dimensions;
 pub use image_dimensions::*;
 
+mod into_element_type;
+pub use into_element_type::*;
+
 use failure::Fail;
 
 /// Image that can be sent accross for FFI

@@ -59,6 +59,34 @@ impl Context {
     }
 }
 
+#[macro_export]
+macro_rules! cpu_compute {
+    ($cpu_context:ident, $tgt:ident, $idx:ident => $fn:expr) => {{
+        use crate::image::IntoElementType;
+        let mut data_mut = $tgt.data_mut()?;
+
+        if let Some(data) = data_mut.as_u8_nd_array_mut() {
+            $cpu_context.thread_pool.install(|| {
+                par_azip!((index $idx, o in data) {
+                    *o = $fn.into_u8();
+                });
+            });
+
+            Ok(())
+        } else if let Some(data) = data_mut.as_f32_nd_array_mut() {
+            $cpu_context.thread_pool.install(|| {
+                par_azip!((index $idx, o in data) {
+                    *o = $fn.into_f32();
+                });
+            });
+
+            Ok(())
+        } else {
+            Err(crate::method::Error::FormatNotSupported)
+        }
+    }}
+}
+
 #[no_mangle]
 pub extern "C" fn txkit_context_new_cpu() -> *mut Context {
     crate::api::wrap_result(Context::new_cpu().map(Box::new).map(Box::into_raw))

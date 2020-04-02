@@ -3,6 +3,7 @@
 //! through its C API.
 
 pub mod api;
+#[macro_use]
 pub mod context;
 pub mod image;
 pub mod method;
