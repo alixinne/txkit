@@ -13,27 +13,6 @@
 #define TXKIT_SUCCESS 0
 
 /**
- * Type of elements in an image
- */
-enum ImageDataType
-#ifdef __cplusplus
-  : uint32_t
-#endif // __cplusplus
- {
-  /**
-   * Unsigned bytes (8 bits)
-   */
-  UInt8,
-  /**
-   * Single-precision floating point (32 bits)
-   */
-  Float32,
-};
-#ifndef __cplusplus
-typedef uint32_t ImageDataType;
-#endif // __cplusplus
-
-/**
  * txkit computing context
  */
 typedef struct Context Context;
