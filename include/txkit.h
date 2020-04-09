@@ -238,12 +238,18 @@ void txkit_image_unmap_write(MappedImageDataWrite *write_map);
  * * `ctx`: context to use for computing the image
  * * `method`: texturing method
  * * `tgt`: target image to be computed
+ * * `params`: pointer to the parameter structure for this method
+ * * `params_size`: size of the parameter structure
  *
  * # Returns
  *
  * TXKIT_SUCCESS if no error occurred, else a non-zero code.
  */
-int32_t txkit_method_compute(Context *ctx, Method *method, Image *tgt);
+int32_t txkit_method_compute(Context *ctx,
+                             Method *method,
+                             Image *tgt,
+                             const void *params,
+                             uintptr_t params_size);
 
 /**
  * Destroy a method

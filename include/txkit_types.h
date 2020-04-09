@@ -29,3 +29,18 @@ enum ImageDataType
 #ifndef __cplusplus
 typedef uint32_t ImageDataType;
 #endif // __cplusplus
+
+struct DebugParams {
+  float alpha_value;
+};
+
+#ifndef __cplusplus
+typedef struct DebugParams DebugParams;
+#endif // __cplusplus
+
+struct WhitenoiseParams {
+};
+
+#ifndef __cplusplus
+typedef struct WhitenoiseParams WhitenoiseParams;
+#endif // __cplusplus

@@ -3,8 +3,15 @@ decl_method! {
     gpu {
         name WhitenoiseGpu;
         program crate::shaders::WhitenoiseProgram;
+        prepare (_gl, _program, _params) => {
+            Ok(())
+        };
     }
-    cpu ((k, j, i, l), sz) -> f32 => {
+    params {
+        WhitenoiseParams {
+        }
+    }
+    cpu ((k, j, i, l), sz, _params) -> f32 => {
         let mut x = ((i + j * sz.width + k * sz.width * sz.height) * sz.channels + l) as u32;
 
         // Hash
