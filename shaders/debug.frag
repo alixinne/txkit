@@ -8,5 +8,5 @@ layout(location = 0) out vec4 o_FragColor;
 void main() {
     ivec3 px = ivec3(uv * vec3(iResolution));
 
-    o_FragColor = vec4(px.x, px.y, 0., 1.);
+    o_FragColor = vec4(px, 1.);
 }
