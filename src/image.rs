@@ -266,6 +266,16 @@ pub extern "C" fn txkit_image_dim(image: &Image) -> ImageDim {
     image.dim()
 }
 
+/// Sync the host representation of the image with its device counterpart
+///
+/// # Parameters
+///
+/// * `image`: image to sync
+#[no_mangle]
+pub extern "C" fn txkit_image_sync(image: &mut Image) -> i32 {
+    crate::api::wrap_result_code(image.sync())
+}
+
 pub struct MappedImageDataReadBox {
     ptr: Box<dyn MappedImageData>,
 }

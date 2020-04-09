@@ -148,11 +148,9 @@ impl GpuContext {
             }
         }
 
-        if r.is_ok() {
-            r = tgt
-                .start_download()
-                .map_err(|msg| crate::method::Error::GlError(msg));
-        }
+        // We changed the contents of the texture on GPU, it needs
+        // to be downloaded before being mapped again
+        tgt.invalidate_host();
 
         // Cleanup
         // Unbind texture from framebuffer

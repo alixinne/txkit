@@ -9,12 +9,15 @@ use super::*;
 pub struct GpuImageData {
     gl: Rc<tinygl::Context>,
     pub(crate) texture: Texture,
-    pub(crate) buffer: Buffer,
+    pub(crate) buffer: Option<Buffer>,
     pub(crate) element_type: ImageDataType,
     pub(crate) dim: ImageDim,
 
     target: u32,
     transfer_sync: RefCell<Option<<tinygl::glow::Context as tinygl::glow::HasContext>::Fence>>,
+
+    device_generation: u32,
+    host_generation: u32,
 }
 
 impl GpuImageData {
@@ -53,16 +56,16 @@ impl GpuImageData {
             gl.bind_texture(target, None);
         }
 
-        let buffer = GlRefHandle::new(&*gl, Buffer::new(gl)?);
-
         res.map(|()| Self {
             gl: gl.clone(),
             texture: texture.into_inner(),
-            buffer: buffer.into_inner(),
+            buffer: None,
             element_type,
             dim,
             transfer_sync: RefCell::new(None),
             target,
+            device_generation: 0,
+            host_generation: 0,
         })
     }
 
@@ -180,9 +183,20 @@ impl GpuImageData {
             * self.dim.channels
     }
 
-    pub fn start_download(&mut self) -> Result<(), String> {
+    pub fn invalidate_host(&mut self) {
+        self.device_generation += 1;
+    }
+
+    fn start_download(&mut self) -> Result<(), String> {
         unsafe {
-            self.buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
+            if self.buffer.is_none() {
+                self.buffer = Some(Buffer::new(&*self.gl)?);
+            }
+
+            self.buffer
+                .as_ref()
+                .unwrap()
+                .bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
             self.gl.buffer_data_size(
                 tinygl::gl::PIXEL_PACK_BUFFER,
                 self.byte_size() as i32,
@@ -211,7 +225,14 @@ impl GpuImageData {
         }
     }
 
-    unsafe fn map_buffer(&self, usage: u32) -> *mut u8 {
+    unsafe fn map_buffer(&self, usage: u32) -> Result<*mut u8, ImageDataError> {
+        let buffer = match self.buffer.as_ref() {
+            Some(r) => r,
+            None => {
+                return Err(ImageDataError::Unsynced);
+            }
+        };
+
         if let Some(fence_sync) = self.transfer_sync.borrow_mut().take() {
             loop {
                 match self.gl.client_wait_sync(
@@ -234,7 +255,7 @@ impl GpuImageData {
             }
         }
 
-        self.buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
+        buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
 
         let ptr = self.gl.map_buffer_range(
             tinygl::gl::PIXEL_PACK_BUFFER,
@@ -245,13 +266,19 @@ impl GpuImageData {
 
         self.gl.bind_buffer(tinygl::gl::PIXEL_PACK_BUFFER, None);
 
-        ptr
+        if ptr == std::ptr::null_mut() {
+            Err(ImageDataError::MappingFailed)
+        } else {
+            Ok(ptr)
+        }
     }
 
     unsafe fn unmap_buffer(&self) {
-        self.buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
-        self.gl.unmap_buffer(tinygl::gl::PIXEL_PACK_BUFFER);
-        self.gl.bind_buffer(tinygl::gl::PIXEL_PACK_BUFFER, None);
+        if let Some(buffer) = &self.buffer {
+            buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
+            self.gl.unmap_buffer(tinygl::gl::PIXEL_PACK_BUFFER);
+            self.gl.bind_buffer(tinygl::gl::PIXEL_PACK_BUFFER, None);
+        }
     }
 }
 
@@ -260,7 +287,7 @@ impl Drop for GpuImageData {
         use tinygl::wrappers::GlDrop;
 
         self.texture.drop(&*self.gl);
-        self.buffer.drop(&*self.gl);
+        self.buffer.take().map(|mut buffer| buffer.drop(&*self.gl));
     }
 }
 
@@ -270,6 +297,13 @@ impl ImageDataBase for GpuImageData {
     }
     fn element_type(&self) -> ImageDataType {
         self.element_type
+    }
+    fn sync(&mut self) -> Result<(), String> {
+        if self.host_generation != self.device_generation {
+            self.start_download()
+        } else {
+            Ok(())
+        }
     }
     fn as_gpu_image(&self) -> Option<&GpuImageData> {
         Some(self)
@@ -291,7 +325,7 @@ struct MappedGpuImageMut<'t> {
 
 impl<'t> MappedGpuImage<'t> {
     fn map(tgt: &'t GpuImageData) -> Result<Self, ImageDataError> {
-        let mapped_ptr = unsafe { tgt.map_buffer(tinygl::gl::MAP_READ_BIT) };
+        let mapped_ptr = unsafe { tgt.map_buffer(tinygl::gl::MAP_READ_BIT)? };
 
         Ok(Self { tgt, mapped_ptr })
     }
@@ -308,7 +342,7 @@ impl Drop for MappedGpuImage<'_> {
 impl<'t> MappedGpuImageMut<'t> {
     fn map(tgt: &'t mut GpuImageData) -> Result<Self, ImageDataError> {
         let mapped_ptr =
-            unsafe { tgt.map_buffer(tinygl::gl::MAP_READ_BIT | tinygl::gl::MAP_WRITE_BIT) };
+            unsafe { tgt.map_buffer(tinygl::gl::MAP_READ_BIT | tinygl::gl::MAP_WRITE_BIT)? };
 
         Ok(Self { tgt, mapped_ptr })
     }

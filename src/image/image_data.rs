@@ -10,6 +10,12 @@ pub trait ImageDataBase {
     /// Get the native type of elements in this image
     fn element_type(&self) -> ImageDataType;
 
+    /// Sync the contents of the (mappable) host data with device data.
+    /// Required for GPU backends. May be asynchronous.
+    fn sync(&mut self) -> Result<(), String> {
+        Ok(())
+    }
+
     #[cfg(feature = "gpu")]
     /// Get the image data as a GpuImageData reference if possible
     fn as_gpu_image(&self) -> Option<&super::gpu::GpuImageData> {
@@ -51,6 +57,10 @@ pub trait MappedImageDataMut {
 pub enum ImageDataError {
     #[fail(display = "unknown mapping error")]
     UnknownMapping,
+    #[fail(display = "image needs to be synced before being mapped")]
+    Unsynced,
+    #[fail(display = "mapping the image failed in the backend, check logs for details")]
+    MappingFailed,
 }
 
 pub trait ImageData: ImageDataBase {
