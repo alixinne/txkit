@@ -69,7 +69,7 @@ pub const TXKIT_SUCCESS: i32 = 0;
 ///
 /// Null pointer if no error occurred, or error message for the last error.
 #[no_mangle]
-pub extern "C" fn txkit_get_last_error() -> *const i8 {
+pub extern "C" fn txkit_get_last_error() -> *const libc::c_char {
     let le = STATE.lock().unwrap().last_error.as_ptr();
     if unsafe { *le } == 0 {
         std::ptr::null()

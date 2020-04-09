@@ -48,7 +48,7 @@ Context *txkit_context_new_gpu(void);
  *
  * Null pointer if no error occurred, or error message for the last error.
  */
-const int8_t *txkit_get_last_error(void);
+const char *txkit_get_last_error(void);
 
 /**
  * Destroy an image
@@ -202,6 +202,15 @@ Image *txkit_image_new_gpu_2d(ImageDim dim, ImageDataType element_type, const Co
  * Allocated image.
  */
 Image *txkit_image_new_gpu_3d(ImageDim dim, ImageDataType element_type, const Context *context);
+
+/**
+ * Sync the host representation of the image with its device counterpart
+ *
+ * # Parameters
+ *
+ * * `image`: image to sync
+ */
+int32_t txkit_image_sync(Image *image);
 
 /**
  * Unmap a mapped image.
