@@ -77,7 +77,7 @@ impl GpuContext {
     pub fn render_to_framebuffer(
         &mut self,
         tgt: &mut GpuImageData,
-        f: impl FnOnce(&Rc<tinygl::Context>) -> Result<(), crate::method::Error>,
+        mut f: impl FnMut(&Rc<tinygl::Context>, u32) -> Result<(), crate::method::Error>,
     ) -> Result<(), crate::method::Error> {
         // Setup framebuffer
         let dim = tgt.dim;
@@ -95,39 +95,77 @@ impl GpuContext {
 
             // Bind VAO
             self.gl.bind_vertex_array(Some(self.vao));
+        }
 
-            // Set texture
-            self.rtt.framebuffer.texture(
-                &*self.gl,
-                tinygl::gl::FRAMEBUFFER,
-                tinygl::gl::COLOR_ATTACHMENT0,
-                Some(&tgt.texture),
-                0,
-            );
+        let mut r = Ok(());
+
+        match tgt.target() {
+            tinygl::gl::TEXTURE_2D => {
+                tgt.texture.bind(&*self.gl, tinygl::gl::TEXTURE_2D);
+
+                // Set texture
+                self.rtt.framebuffer.texture_2d(
+                    &*self.gl,
+                    tinygl::gl::FRAMEBUFFER,
+                    tinygl::gl::COLOR_ATTACHMENT0,
+                    tinygl::gl::TEXTURE_2D,
+                    Some(&tgt.texture),
+                    0,
+                );
+            }
+            tinygl::gl::TEXTURE_3D => {
+                tgt.texture.bind(&*self.gl, tinygl::gl::TEXTURE_3D);
+            }
+            _ => panic!("invalid texture target"),
+        }
+
+        for layer in 0..dim.depth {
+            match tgt.target() {
+                tinygl::gl::TEXTURE_2D => {}
+                tinygl::gl::TEXTURE_3D => {
+                    // Set texture
+                    self.rtt.framebuffer.texture_3d(
+                        &*self.gl,
+                        tinygl::gl::FRAMEBUFFER,
+                        tinygl::gl::COLOR_ATTACHMENT0,
+                        tinygl::gl::TEXTURE_3D,
+                        Some(&tgt.texture),
+                        0,
+                        layer as i32,
+                    );
+                }
+                _ => panic!("invalid texture target"),
+            }
 
             // Setup draw buffers
             //self.gl.draw_buffers(&[tinygl::gl::COLOR_ATTACHMENT0]);
+
+            // Call rendering method
+            r = f(&self.gl, layer as u32);
+            if r.is_err() {
+                // Abort rendering on first layer error
+                break;
+            }
         }
 
-        // Call rendering method
-        let r = match f(&self.gl) {
-            Ok(_) => tgt
+        if r.is_ok() {
+            r = tgt
                 .start_download()
-                .map_err(|msg| crate::method::Error::GlError(msg)),
-            other => other,
-        };
+                .map_err(|msg| crate::method::Error::GlError(msg));
+        }
 
         // Cleanup
-        unsafe {
-            // Unbind texture from framebuffer
-            self.rtt.framebuffer.texture(
-                &*self.gl,
-                tinygl::gl::FRAMEBUFFER,
-                tinygl::gl::COLOR_ATTACHMENT0,
-                None,
-                0,
-            );
+        // Unbind texture from framebuffer
+        self.rtt.framebuffer.texture(
+            &*self.gl,
+            tinygl::gl::FRAMEBUFFER,
+            tinygl::gl::COLOR_ATTACHMENT0,
+            None,
+            0,
+        );
 
+        unsafe {
+            self.gl.bind_texture(tgt.target(), None);
             self.gl.bind_vertex_array(None);
             self.gl.bind_framebuffer(tinygl::gl::FRAMEBUFFER, None);
         }

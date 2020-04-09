@@ -168,6 +168,10 @@ impl GpuImageData {
         )
     }
 
+    pub fn target(&self) -> u32 {
+        self.target
+    }
+
     pub fn byte_size(&self) -> usize {
         self.element_type.byte_size()
             * self.dim.width

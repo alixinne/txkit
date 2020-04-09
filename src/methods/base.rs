@@ -63,9 +63,10 @@ macro_rules! decl_method {
                 tgt.as_gpu_image_mut()
                     .ok_or(crate::method::Error::FormatNotSupported)
                     .and_then(|tgt| {
-                        gpu_context.render_to_framebuffer(tgt, |gl| {
+                        gpu_context.render_to_framebuffer(tgt, |gl, layer| {
                             gpu.program.use_program(gl);
                             gpu.program.set_i_resolution(gl, dim);
+                            gpu.program.set_i_layer(gl, layer);
 
                             unsafe {
                                 gl.draw_arrays(tinygl::gl::TRIANGLES, 0, 3);
