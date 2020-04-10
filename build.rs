@@ -5,26 +5,35 @@ use std::path::PathBuf;
 fn wrap_shaders() {
     let mut compiler = tinygl_compiler::CompilerBuilder::default().build().unwrap();
 
-    compiler.wrap_shader("shaders/debug.frag").unwrap();
-    compiler.wrap_shader("shaders/quad.vert").unwrap();
-    compiler.wrap_shader("shaders/whitenoise.frag").unwrap();
+    let debug_frag = compiler.wrap_shader("shaders/debug.frag").unwrap();
+    let quad_vert = compiler.wrap_shader("shaders/quad.vert").unwrap();
+    let whitenoise_frag = compiler.wrap_shader("shaders/whitenoise.frag").unwrap();
 
-    compiler
-        .wrap_program(&["shaders/quad.vert", "shaders/debug.frag"], "debug")
+    let debug_prog = compiler
+        .wrap_program(&[&quad_vert, &debug_frag], "debug")
+        .unwrap();
+
+    let whitenoise_prog = compiler
+        .wrap_program(&[&quad_vert, &whitenoise_frag], "whitenoise")
+        .unwrap();
+
+    let global_set = compiler
+        .wrap_uniforms(&[&debug_prog, &whitenoise_prog], "global")
         .unwrap();
 
     compiler
-        .wrap_program(
-            &["shaders/quad.vert", "shaders/whitenoise.frag"],
-            "whitenoise",
+        .write_root_include(
+            env::var("OUT_DIR").unwrap(),
+            &[
+                &debug_frag,
+                &quad_vert,
+                &whitenoise_frag,
+                &debug_prog,
+                &whitenoise_prog,
+                &global_set,
+            ],
         )
         .unwrap();
-
-    compiler
-        .wrap_uniforms(&["debug", "whitenoise"], "global")
-        .unwrap();
-
-    compiler.write_root_include().unwrap();
 }
 
 #[cfg(not(feature = "gpu"))]
