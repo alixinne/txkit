@@ -15,7 +15,8 @@ if ! cargo test --quiet --all-targets ; then
 fi
 
 # Commit txkit.h if sources have changed
-if [ -n "$(git status --porcelain src | awk '/^M /')" ]; then
+if [ -n "$(git status --porcelain src cbindgen.toml | awk '/^M /')" ]; then
+    rustup run nightly cbindgen -o include/txkit.h
     git add include/txkit.h
 fi
 

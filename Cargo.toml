@@ -26,7 +26,6 @@ paste = "0.1.9"
 libc = "0.2"
 
 [build-dependencies]
-cbindgen = "0.13.2"
 tinygl-compiler = { git = "https://github.com/vtavernier/tinygl.git", optional = true }
 
 [dev-dependencies.cargo-husky]

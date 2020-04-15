@@ -5,12 +5,32 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "txkit_types.h"
 
 /**
  * No error occurred
  */
 #define TXKIT_SUCCESS 0
+
+/**
+ * Type of elements in an image
+ */
+enum ImageDataType
+#ifdef __cplusplus
+  : uint32_t
+#endif // __cplusplus
+ {
+    /**
+     * Unsigned bytes (8 bits)
+     */
+    ImageDataType_UInt8,
+    /**
+     * Single-precision floating point (32 bits)
+     */
+    ImageDataType_Float32,
+};
+#ifndef __cplusplus
+typedef uint32_t ImageDataType;
+#endif // __cplusplus
 
 /**
  * txkit computing context
@@ -30,6 +50,23 @@ typedef struct MappedImageDataWrite MappedImageDataWrite;
  * Wrapped method for FFI
  */
 typedef struct Method Method;
+
+typedef struct {
+    uintptr_t width;
+    uintptr_t height;
+    uintptr_t depth;
+    uintptr_t channels;
+} ImageDimensions_usize;
+
+typedef ImageDimensions_usize ImageDim;
+
+typedef struct {
+
+} WhitenoiseParams;
+
+typedef struct {
+    float alpha_value;
+} DebugParams;
 
 #ifdef __cplusplus
 extern "C" {

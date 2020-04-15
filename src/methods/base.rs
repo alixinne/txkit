@@ -25,6 +25,7 @@ macro_rules! decl_method {
         }
 
         #[derive(Clone, PartialEq)]
+        #[repr(C)]
         pub struct $params_name {
             $($param_name: $param_type),*
         }

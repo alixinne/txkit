@@ -1,5 +1,4 @@
 use std::env;
-use std::path::PathBuf;
 
 #[cfg(feature = "gpu")]
 fn wrap_shaders() {
@@ -41,25 +40,4 @@ fn wrap_shaders() {}
 
 fn main() {
     wrap_shaders();
-
-    // Generate C header for library clients
-    cbindgen::Builder::new()
-        .with_config(cbindgen::Config {
-            cpp_compat: true,
-            language: cbindgen::Language::C,
-            include_guard: Some("TXKIT_H".to_owned()),
-            includes: vec!["txkit_types.h".to_owned()],
-            ..Default::default()
-        })
-        .with_crate(env::var("CARGO_MANIFEST_DIR").unwrap())
-        .rename_item("MethodBox", "Method")
-        .rename_item("MappedImageDataReadBox", "MappedImageDataRead")
-        .rename_item("MappedImageDataWriteBox", "MappedImageDataWrite")
-        .generate()
-        .expect("unable to generate C bindings")
-        .write_to_file(
-            PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
-                .join("include")
-                .join("txkit.h"),
-        );
 }
