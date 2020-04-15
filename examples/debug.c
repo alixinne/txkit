@@ -20,10 +20,10 @@ int main(int argc, char *argv[]) {
 
 	ImageDim dim = {.width = 16, .height = 16, .depth = 1, .channels = 4};
 
-	Image *img = txkit_image_new_gpu_2d(dim, Float32, ctx);
+	Image *img = txkit_image_new_gpu_2d(dim, ImageDataType_Float32, ctx);
 	TXKIT_CHECKPTR(img);
 
-	Image *img_cpu = txkit_image_new_cpu(dim, Float32);
+	Image *img_cpu = txkit_image_new_cpu(dim, ImageDataType_Float32);
 	TXKIT_CHECKPTR(img_cpu);
 
 	Method *mth = txkit_method_new("debug");
