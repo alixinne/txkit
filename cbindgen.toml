@@ -1,4 +1,5 @@
 language = "C"
+includes = ["txkit_extra.h"]
 cpp_compat = true
 
 include_guard = "TXKIT_H"
@@ -23,6 +24,7 @@ MappedImageDataReadBox = "MappedImageDataRead"
 MappedImageDataWriteBox = "MappedImageDataWrite"
 
 [fn]
+prefix = "TXKIT_API"
 sort_by = "Name"
 
 [struct]
