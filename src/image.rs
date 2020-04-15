@@ -180,11 +180,11 @@ pub extern "C" fn txkit_image_new_gpu_1d(
     element_type: ImageDataType,
     context: &crate::context::Context,
 ) -> *mut Image {
-    crate::api::wrap_result(
+    crate::api::wrap_result(|| {
         Image::new_gpu_1d(dim, element_type, context)
             .map(Box::new)
-            .map(Box::into_raw),
-    )
+            .map(Box::into_raw)
+    })
     .unwrap_or(std::ptr::null_mut())
 }
 
@@ -204,11 +204,11 @@ pub extern "C" fn txkit_image_new_gpu_2d(
     element_type: ImageDataType,
     context: &crate::context::Context,
 ) -> *mut Image {
-    crate::api::wrap_result(
+    crate::api::wrap_result(|| {
         Image::new_gpu_2d(dim, element_type, context)
             .map(Box::new)
-            .map(Box::into_raw),
-    )
+            .map(Box::into_raw)
+    })
     .unwrap_or(std::ptr::null_mut())
 }
 
@@ -228,11 +228,11 @@ pub extern "C" fn txkit_image_new_gpu_3d(
     element_type: ImageDataType,
     context: &crate::context::Context,
 ) -> *mut Image {
-    crate::api::wrap_result(
+    crate::api::wrap_result(|| {
         Image::new_gpu_3d(dim, element_type, context)
             .map(Box::new)
-            .map(Box::into_raw),
-    )
+            .map(Box::into_raw)
+    })
     .unwrap_or(std::ptr::null_mut())
 }
 
@@ -273,7 +273,7 @@ pub extern "C" fn txkit_image_dim(image: &Image) -> ImageDim {
 /// * `image`: image to sync
 #[no_mangle]
 pub extern "C" fn txkit_image_sync(image: &mut Image) -> i32 {
-    crate::api::wrap_result_code(image.sync())
+    crate::api::wrap_result_code(|| image.sync())
 }
 
 pub struct MappedImageDataReadBox {
@@ -287,11 +287,11 @@ pub struct MappedImageDataReadBox {
 /// * `image`: image to map for read access
 #[no_mangle]
 pub extern "C" fn txkit_image_map_read(image: &'static Image) -> *mut MappedImageDataReadBox {
-    crate::api::wrap_result(
+    crate::api::wrap_result(|| {
         image
             .data()
-            .map(|bx| Box::into_raw(Box::new(MappedImageDataReadBox { ptr: bx }))),
-    )
+            .map(|bx| Box::into_raw(Box::new(MappedImageDataReadBox { ptr: bx })))
+    })
     .unwrap_or(std::ptr::null_mut())
 }
 
@@ -352,11 +352,11 @@ pub struct MappedImageDataWriteBox {
 /// * `image`: image to map for write access
 #[no_mangle]
 pub extern "C" fn txkit_image_map_write(image: &'static mut Image) -> *mut MappedImageDataWriteBox {
-    crate::api::wrap_result(
+    crate::api::wrap_result(move || {
         image
             .data_mut()
-            .map(|bx| Box::into_raw(Box::new(MappedImageDataWriteBox { ptr: bx }))),
-    )
+            .map(|bx| Box::into_raw(Box::new(MappedImageDataWriteBox { ptr: bx })))
+    })
     .unwrap_or(std::ptr::null_mut())
 }
 

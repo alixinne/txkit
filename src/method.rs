@@ -60,18 +60,20 @@ pub struct MethodBox {
 /// method.
 #[no_mangle]
 pub extern "C" fn txkit_method_new(method_name: *const libc::c_char) -> *mut MethodBox {
-    crate::api::wrap_result(if method_name == std::ptr::null() {
-        Err(Error::InvalidMethodName)
-    } else {
-        match unsafe { std::ffi::CStr::from_ptr(method_name as *const _) }.to_str() {
-            Ok("debug") => Ok(Box::into_raw(Box::new(MethodBox {
-                method: Box::new(crate::methods::Debug::new()),
-            }))),
-            Ok("whitenoise") => Ok(Box::into_raw(Box::new(MethodBox {
-                method: Box::new(crate::methods::Whitenoise::new()),
-            }))),
-            Ok(_) => Err(Error::MethodNotFound),
-            Err(_) => Err(Error::InvalidMethodName),
+    crate::api::wrap_result(|| {
+        if method_name == std::ptr::null() {
+            Err(Error::InvalidMethodName)
+        } else {
+            match unsafe { std::ffi::CStr::from_ptr(method_name as *const _) }.to_str() {
+                Ok("debug") => Ok(Box::into_raw(Box::new(MethodBox {
+                    method: Box::new(crate::methods::Debug::new()),
+                }))),
+                Ok("whitenoise") => Ok(Box::into_raw(Box::new(MethodBox {
+                    method: Box::new(crate::methods::Whitenoise::new()),
+                }))),
+                Ok(_) => Err(Error::MethodNotFound),
+                Err(_) => Err(Error::InvalidMethodName),
+            }
         }
     })
     .unwrap_or(std::ptr::null_mut())
@@ -106,7 +108,7 @@ pub unsafe extern "C" fn txkit_method_compute(
         Some(&params_slice)
     };
 
-    crate::api::wrap_result_code(method.method.compute(ctx, tgt, params))
+    crate::api::wrap_result_code(|| method.method.compute(ctx, tgt, params))
 }
 
 /// Destroy a method

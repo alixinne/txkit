@@ -42,22 +42,50 @@ pub fn set_last_error(e: impl ToString) {
     STATE.lock().unwrap().set_last_error(e);
 }
 
-pub fn wrap_result<T, E: ToString>(r: Result<T, E>) -> Option<T> {
-    r.map_err(|e| set_last_error(e))
-        .map(|v| {
-            clear_last_error();
-            v
-        })
-        .ok()
+pub fn wrap_result<T, E: ToString>(r: impl FnOnce() -> Result<T, E>) -> Option<T> {
+    match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        r().map_err(|e| set_last_error(e))
+            .map(|v| {
+                clear_last_error();
+                v
+            })
+            .ok()
+    })) {
+        Ok(result) => result,
+        Err(error) => {
+            if let Some(message) = error.downcast_ref::<String>() {
+                set_last_error(message);
+            } else {
+                // For debugging, don't just ignore the error if we can't print it
+                panic!(error);
+            }
+
+            None
+        }
+    }
 }
 
-pub fn wrap_result_code<E: ToString>(r: Result<(), E>) -> i32 {
-    r.map_err(|e| set_last_error(e))
-        .map(|()| {
-            clear_last_error();
-            0
-        })
-        .unwrap_or(1)
+pub fn wrap_result_code<E: ToString>(r: impl FnOnce() -> Result<(), E>) -> i32 {
+    match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        r().map_err(|e| set_last_error(e))
+            .map(|()| {
+                clear_last_error();
+                0
+            })
+            .unwrap_or(1)
+    })) {
+        Ok(result) => result,
+        Err(error) => {
+            if let Some(message) = error.downcast_ref::<String>() {
+                set_last_error(message);
+            } else {
+                // For debugging, don't just ignore the error if we can't print it
+                panic!(error);
+            }
+
+            1
+        }
+    }
 }
 
 /// No error occurred

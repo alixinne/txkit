@@ -99,13 +99,13 @@ macro_rules! cpu_compute {
 
 #[no_mangle]
 pub extern "C" fn txkit_context_new_cpu() -> *mut Context {
-    crate::api::wrap_result(Context::new_cpu().map(Box::new).map(Box::into_raw))
+    crate::api::wrap_result(|| Context::new_cpu().map(Box::new).map(Box::into_raw))
         .unwrap_or(std::ptr::null_mut())
 }
 
 #[no_mangle]
 pub extern "C" fn txkit_context_new_gpu() -> *mut Context {
-    crate::api::wrap_result(Context::new_gpu().map(Box::new).map(Box::into_raw))
+    crate::api::wrap_result(|| Context::new_gpu().map(Box::new).map(Box::into_raw))
         .unwrap_or(std::ptr::null_mut())
 }
 
