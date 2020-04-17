@@ -91,7 +91,7 @@ pub extern "C" fn txkit_method_new(method_name: *const libc::c_char) -> *mut Met
 ///
 /// # Returns
 ///
-/// TXKIT_SUCCESS if no error occurred, else a non-zero code.
+/// TxKit_SUCCESS if no error occurred, else a non-zero code.
 #[no_mangle]
 pub unsafe extern "C" fn txkit_method_compute(
     ctx: &mut Context,

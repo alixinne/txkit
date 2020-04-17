@@ -18,6 +18,8 @@ include = [
 	"DebugParams",
 ]
 
+prefix = "TxKit_"
+
 [export.rename]
 MethodBox = "Method"
 MappedImageDataReadBox = "MappedImageDataRead"
@@ -34,7 +36,8 @@ derive_constructor = true
 prefix_with_name = true
 
 [parse]
-parse_deps = false
+parse_deps = true
+include = ["cgmath", "tinygl"]
 
 [parse.expand]
 crates = ["txkit"]

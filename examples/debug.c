@@ -12,24 +12,24 @@
 	} while (0)
 
 int main(int argc, char *argv[]) {
-	Context *ctx = txkit_context_new_gpu();
+	TxKit_Context *ctx = txkit_context_new_gpu();
 	TXKIT_CHECKPTR(ctx);
 
-	Context *ctx_cpu = txkit_context_new_cpu();
+	TxKit_Context *ctx_cpu = txkit_context_new_cpu();
 	TXKIT_CHECKPTR(ctx_cpu);
 
-	ImageDim dim = {.width = 16, .height = 16, .depth = 1, .channels = 4};
+	TxKit_ImageDim dim = {.width = 16, .height = 16, .depth = 1, .channels = 4};
 
-	Image *img = txkit_image_new_gpu_2d(dim, ImageDataType_Float32, ctx);
+	TxKit_Image *img = txkit_image_new_gpu_2d(dim, TxKit_ImageDataType_Float32, ctx);
 	TXKIT_CHECKPTR(img);
 
-	Image *img_cpu = txkit_image_new_cpu(dim, ImageDataType_Float32);
+	TxKit_Image *img_cpu = txkit_image_new_cpu(dim, TxKit_ImageDataType_Float32);
 	TXKIT_CHECKPTR(img_cpu);
 
-	Method *mth = txkit_method_new("debug");
+	TxKit_Method *mth = txkit_method_new("debug");
 	TXKIT_CHECKPTR(mth);
 
-	DebugParams params = {.alpha_value = 0.5f};
+	TxKit_DebugParams params = {.alpha_value = 0.5f};
 
 	txkit_method_compute(ctx, mth, img, &params, sizeof(params));
 	txkit_method_compute(ctx_cpu, mth, img_cpu, &params, sizeof(params));
@@ -37,10 +37,10 @@ int main(int argc, char *argv[]) {
 	txkit_image_sync(img);
 	txkit_image_sync(img_cpu);
 
-	MappedImageDataRead *read_map = txkit_image_map_read(img);
+	TxKit_MappedImageDataRead *read_map = txkit_image_map_read(img);
 	TXKIT_CHECKPTR(read_map);
 
-	MappedImageDataRead *read_map_cpu = txkit_image_map_read(img_cpu);
+	TxKit_MappedImageDataRead *read_map_cpu = txkit_image_map_read(img_cpu);
 	TXKIT_CHECKPTR(read_map_cpu);
 
 	const float *data = txkit_image_map_read_data_f32(read_map);

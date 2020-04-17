@@ -89,7 +89,7 @@ pub fn wrap_result_code<E: ToString>(r: impl FnOnce() -> Result<(), E>) -> i32 {
 }
 
 /// No error occurred
-pub const TXKIT_SUCCESS: i32 = 0;
+pub const SUCCESS: i32 = 0;
 
 /// Get the description of the last error that occurred in the txkit API
 ///

@@ -5,16 +5,17 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "txkit_extra.h"
 
 /**
  * No error occurred
  */
-#define TXKIT_SUCCESS 0
+#define TxKit_SUCCESS 0
 
 /**
  * Type of elements in an image
  */
-enum ImageDataType
+enum TxKit_ImageDataType
 #ifdef __cplusplus
   : uint32_t
 #endif // __cplusplus
@@ -22,61 +23,61 @@ enum ImageDataType
     /**
      * Unsigned bytes (8 bits)
      */
-    ImageDataType_UInt8,
+    TxKit_ImageDataType_UInt8,
     /**
      * Single-precision floating point (32 bits)
      */
-    ImageDataType_Float32,
+    TxKit_ImageDataType_Float32,
 };
 #ifndef __cplusplus
-typedef uint32_t ImageDataType;
+typedef uint32_t TxKit_ImageDataType;
 #endif // __cplusplus
 
 /**
  * txkit computing context
  */
-typedef struct Context Context;
+typedef struct TxKit_Context TxKit_Context;
 
 /**
  * Image that can be sent accross for FFI
  */
-typedef struct Image Image;
+typedef struct TxKit_Image TxKit_Image;
 
-typedef struct MappedImageDataRead MappedImageDataRead;
+typedef struct TxKit_MappedImageDataRead TxKit_MappedImageDataRead;
 
-typedef struct MappedImageDataWrite MappedImageDataWrite;
+typedef struct TxKit_MappedImageDataWrite TxKit_MappedImageDataWrite;
 
 /**
  * Wrapped method for FFI
  */
-typedef struct Method Method;
+typedef struct TxKit_Method TxKit_Method;
 
 typedef struct {
     uintptr_t width;
     uintptr_t height;
     uintptr_t depth;
     uintptr_t channels;
-} ImageDimensions_usize;
+} TxKit_ImageDimensions_usize;
 
-typedef ImageDimensions_usize ImageDim;
+typedef TxKit_ImageDimensions_usize TxKit_ImageDim;
 
 typedef struct {
 
-} WhitenoiseParams;
+} TxKit_WhitenoiseParams;
 
 typedef struct {
     float alpha_value;
-} DebugParams;
+} TxKit_DebugParams;
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-void txkit_context_destroy(Context *ctx);
+TXKIT_API void txkit_context_destroy(TxKit_Context *ctx);
 
-Context *txkit_context_new_cpu(void);
+TXKIT_API TxKit_Context *txkit_context_new_cpu(void);
 
-Context *txkit_context_new_gpu(void);
+TXKIT_API TxKit_Context *txkit_context_new_gpu(void);
 
 /**
  * Get the description of the last error that occurred in the txkit API
@@ -85,7 +86,7 @@ Context *txkit_context_new_gpu(void);
  *
  * Null pointer if no error occurred, or error message for the last error.
  */
-const char *txkit_get_last_error(void);
+TXKIT_API const char *txkit_get_last_error(void);
 
 /**
  * Destroy an image
@@ -94,7 +95,7 @@ const char *txkit_get_last_error(void);
  *
  * * `image`: image to destroy
  */
-void txkit_image_destroy(Image *image);
+TXKIT_API void txkit_image_destroy(TxKit_Image *image);
 
 /**
  * Return the dimensions of the image
@@ -103,7 +104,7 @@ void txkit_image_destroy(Image *image);
  *
  * * `image`: target image
  */
-ImageDim txkit_image_dim(const Image *image);
+TXKIT_API TxKit_ImageDim txkit_image_dim(const TxKit_Image *image);
 
 /**
  * Return the element type of the image
@@ -112,7 +113,7 @@ ImageDim txkit_image_dim(const Image *image);
  *
  * * `image`: target image
  */
-ImageDataType txkit_image_element_type(const Image *image);
+TXKIT_API TxKit_ImageDataType txkit_image_element_type(const TxKit_Image *image);
 
 /**
  * Map the image pixels for read access. The image must be unmapped after being used.
@@ -121,7 +122,7 @@ ImageDataType txkit_image_element_type(const Image *image);
  *
  * * `image`: image to map for read access
  */
-MappedImageDataRead *txkit_image_map_read(const Image *image);
+TXKIT_API TxKit_MappedImageDataRead *txkit_image_map_read(const TxKit_Image *image);
 
 /**
  * Get a pointer to the image pixels through the given map.
@@ -134,7 +135,7 @@ MappedImageDataRead *txkit_image_map_read(const Image *image);
  *
  * Pointer to the pixel data, or null if the conversion failed.
  */
-const float *txkit_image_map_read_data_f32(const MappedImageDataRead *read_map);
+TXKIT_API const float *txkit_image_map_read_data_f32(const TxKit_MappedImageDataRead *read_map);
 
 /**
  * Get a pointer to the image pixels through the given map.
@@ -147,7 +148,7 @@ const float *txkit_image_map_read_data_f32(const MappedImageDataRead *read_map);
  *
  * Pointer to the pixel data, or null if the conversion failed.
  */
-const uint8_t *txkit_image_map_read_data_u8(const MappedImageDataRead *read_map);
+TXKIT_API const uint8_t *txkit_image_map_read_data_u8(const TxKit_MappedImageDataRead *read_map);
 
 /**
  * Map the image pixels for write access. The image must be unmapped after being used.
@@ -156,7 +157,7 @@ const uint8_t *txkit_image_map_read_data_u8(const MappedImageDataRead *read_map)
  *
  * * `image`: image to map for write access
  */
-MappedImageDataWrite *txkit_image_map_write(Image *image);
+TXKIT_API TxKit_MappedImageDataWrite *txkit_image_map_write(TxKit_Image *image);
 
 /**
  * Get a pointer to the image pixels through the given map.
@@ -169,7 +170,7 @@ MappedImageDataWrite *txkit_image_map_write(Image *image);
  *
  * Pointer to the pixel data, or null if the conversion failed.
  */
-float *txkit_image_map_write_data_f32(MappedImageDataWrite *write_map);
+TXKIT_API float *txkit_image_map_write_data_f32(TxKit_MappedImageDataWrite *write_map);
 
 /**
  * Get a pointer to the image pixels through the given map.
@@ -182,7 +183,7 @@ float *txkit_image_map_write_data_f32(MappedImageDataWrite *write_map);
  *
  * Pointer to the pixel data, or null if the conversion failed.
  */
-uint8_t *txkit_image_map_write_data_u8(MappedImageDataWrite *write_map);
+TXKIT_API uint8_t *txkit_image_map_write_data_u8(TxKit_MappedImageDataWrite *write_map);
 
 /**
  * Create a new image for CPU-based computations
@@ -196,7 +197,7 @@ uint8_t *txkit_image_map_write_data_u8(MappedImageDataWrite *write_map);
  *
  * Allocated image.
  */
-Image *txkit_image_new_cpu(ImageDim dim, ImageDataType element_type);
+TXKIT_API TxKit_Image *txkit_image_new_cpu(TxKit_ImageDim dim, TxKit_ImageDataType element_type);
 
 /**
  * Create a new 1D image for GPU-based computations
@@ -210,7 +211,10 @@ Image *txkit_image_new_cpu(ImageDim dim, ImageDataType element_type);
  *
  * Allocated image.
  */
-Image *txkit_image_new_gpu_1d(ImageDim dim, ImageDataType element_type, const Context *context);
+TXKIT_API
+TxKit_Image *txkit_image_new_gpu_1d(TxKit_ImageDim dim,
+                                    TxKit_ImageDataType element_type,
+                                    const TxKit_Context *context);
 
 /**
  * Create a new 2D image for GPU-based computations
@@ -224,7 +228,10 @@ Image *txkit_image_new_gpu_1d(ImageDim dim, ImageDataType element_type, const Co
  *
  * Allocated image.
  */
-Image *txkit_image_new_gpu_2d(ImageDim dim, ImageDataType element_type, const Context *context);
+TXKIT_API
+TxKit_Image *txkit_image_new_gpu_2d(TxKit_ImageDim dim,
+                                    TxKit_ImageDataType element_type,
+                                    const TxKit_Context *context);
 
 /**
  * Create a new 3D image for GPU-based computations
@@ -238,7 +245,10 @@ Image *txkit_image_new_gpu_2d(ImageDim dim, ImageDataType element_type, const Co
  *
  * Allocated image.
  */
-Image *txkit_image_new_gpu_3d(ImageDim dim, ImageDataType element_type, const Context *context);
+TXKIT_API
+TxKit_Image *txkit_image_new_gpu_3d(TxKit_ImageDim dim,
+                                    TxKit_ImageDataType element_type,
+                                    const TxKit_Context *context);
 
 /**
  * Sync the host representation of the image with its device counterpart
@@ -247,7 +257,7 @@ Image *txkit_image_new_gpu_3d(ImageDim dim, ImageDataType element_type, const Co
  *
  * * `image`: image to sync
  */
-int32_t txkit_image_sync(Image *image);
+TXKIT_API int32_t txkit_image_sync(TxKit_Image *image);
 
 /**
  * Unmap a mapped image.
@@ -256,7 +266,7 @@ int32_t txkit_image_sync(Image *image);
  *
  * * `read_map`: mapped image object
  */
-void txkit_image_unmap_read(MappedImageDataRead *read_map);
+TXKIT_API void txkit_image_unmap_read(TxKit_MappedImageDataRead *read_map);
 
 /**
  * Unmap a mapped image.
@@ -265,7 +275,7 @@ void txkit_image_unmap_read(MappedImageDataRead *read_map);
  *
  * * `write_map`: mapped image object
  */
-void txkit_image_unmap_write(MappedImageDataWrite *write_map);
+TXKIT_API void txkit_image_unmap_write(TxKit_MappedImageDataWrite *write_map);
 
 /**
  * Compute an image using the given method
@@ -280,18 +290,19 @@ void txkit_image_unmap_write(MappedImageDataWrite *write_map);
  *
  * # Returns
  *
- * TXKIT_SUCCESS if no error occurred, else a non-zero code.
+ * TxKit_SUCCESS if no error occurred, else a non-zero code.
  */
-int32_t txkit_method_compute(Context *ctx,
-                             Method *method,
-                             Image *tgt,
+TXKIT_API
+int32_t txkit_method_compute(TxKit_Context *ctx,
+                             TxKit_Method *method,
+                             TxKit_Image *tgt,
                              const void *params,
                              uintptr_t params_size);
 
 /**
  * Destroy a method
  */
-void txkit_method_destroy(Method *method);
+TXKIT_API void txkit_method_destroy(TxKit_Method *method);
 
 /**
  * Create a new method by name
@@ -305,7 +316,7 @@ void txkit_method_destroy(Method *method);
  * Null pointer if an error occurred creating the method, otherwise pointer to the allocated
  * method.
  */
-Method *txkit_method_new(const char *method_name);
+TXKIT_API TxKit_Method *txkit_method_new(const char *method_name);
 
 #ifdef __cplusplus
 } // extern "C"
