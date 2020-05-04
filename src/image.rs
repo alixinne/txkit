@@ -16,7 +16,7 @@ pub use into_element_type::*;
 
 pub mod prelude;
 
-use failure::Fail;
+use thiserror::Error;
 
 /// Image that can be sent accross for FFI
 pub struct Image {
@@ -37,18 +37,17 @@ impl std::ops::DerefMut for Image {
     }
 }
 
-#[derive(Debug, Fail, Clone, Eq, PartialEq)]
+#[derive(Debug, Error)]
 pub enum ImageCreationError {
-    #[fail(display = "the context cannot create this type of images")]
+    #[error("the context cannot create this type of images")]
     ContextNotSupported,
-    #[fail(display = "failed to create the image: {}", 0)]
-    ImageCreationFailed(String),
-}
-
-impl From<String> for ImageCreationError {
-    fn from(msg: String) -> Self {
-        Self::ImageCreationFailed(msg)
-    }
+    #[cfg(feature = "gpu")]
+    #[error("failed to create the image: {0}")]
+    ImageCreationFailed(#[from] tinygl::Error),
+    #[error("unsupported number of channels: {0} (expected <= 4)")]
+    InvalidChannelCount(usize),
+    #[error("invalid image dimensions for the requested dimension")]
+    InvalidImageSize,
 }
 
 impl Image {

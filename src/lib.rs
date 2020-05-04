@@ -5,9 +5,12 @@
 pub mod api;
 #[macro_use]
 pub mod context;
+mod error;
 pub mod image;
 pub mod method;
 pub mod methods;
+
+pub use error::{Error, Result};
 
 #[cfg(feature = "gpu")]
 #[allow(dead_code)]

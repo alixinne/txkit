@@ -5,6 +5,7 @@ use tinygl::prelude::*;
 use tinygl::wrappers::{Buffer, GlRefHandle, Texture};
 
 use super::*;
+use crate::Error;
 
 pub struct GpuImageData {
     gl: Rc<tinygl::Context>,
@@ -26,8 +27,8 @@ impl GpuImageData {
         dim: ImageDim,
         element_type: ImageDataType,
         target: u32,
-        allocator: impl Fn(ImageDim, ImageDataType) -> Result<(), String>,
-    ) -> Result<Self, String> {
+        allocator: impl Fn(ImageDim, ImageDataType) -> Result<(), ImageCreationError>,
+    ) -> Result<Self, ImageCreationError> {
         let texture = GlRefHandle::new(&*gl, Texture::new(gl)?);
         texture.bind(gl, target);
 
@@ -48,7 +49,7 @@ impl GpuImageData {
             allocator(dim, element_type)?;
 
             // Check that the allocation succeeded
-            gl.check_last_error().map_err(|e| e.to_string())
+            gl.check_last_error()
         };
 
         // Unbind texture after allocation
@@ -56,7 +57,9 @@ impl GpuImageData {
             gl.bind_texture(target, None);
         }
 
-        res.map(|()| Self {
+        res?;
+
+        Ok(Self {
             gl: gl.clone(),
             texture: texture.into_inner(),
             buffer: None,
@@ -73,13 +76,9 @@ impl GpuImageData {
         gl: &Rc<tinygl::Context>,
         dim: ImageDim,
         element_type: ImageDataType,
-    ) -> Result<Self, String> {
-        if dim.height > 1 {
-            return Err("invalid height for 1D image".to_owned());
-        }
-
-        if dim.depth > 1 {
-            return Err("invalid depth for 1D image".to_owned());
+    ) -> Result<Self, ImageCreationError> {
+        if dim.height > 1 || dim.depth > 1 {
+            return Err(ImageCreationError::InvalidImageSize);
         }
 
         Self::new_nd(
@@ -92,10 +91,12 @@ impl GpuImageData {
                     gl.tex_image_1d(
                         tinygl::gl::TEXTURE_1D,
                         0,
-                        dim.internal_format(element_type)?,
+                        dim.internal_format(element_type)
+                            .ok_or_else(|| ImageCreationError::InvalidChannelCount(dim.channels))?,
                         dim.width as i32,
                         0,
-                        dim.unsized_format()?,
+                        dim.unsized_format()
+                            .ok_or_else(|| ImageCreationError::InvalidChannelCount(dim.channels))?,
                         element_type.format_type(),
                         None,
                     );
@@ -110,9 +111,9 @@ impl GpuImageData {
         gl: &Rc<tinygl::Context>,
         dim: ImageDim,
         element_type: ImageDataType,
-    ) -> Result<Self, String> {
+    ) -> Result<Self, ImageCreationError> {
         if dim.depth > 1 {
-            return Err("invalid depth for 2D image".to_owned());
+            return Err(ImageCreationError::InvalidImageSize);
         }
 
         Self::new_nd(
@@ -125,11 +126,13 @@ impl GpuImageData {
                     gl.tex_image_2d(
                         tinygl::gl::TEXTURE_2D,
                         0,
-                        dim.internal_format(element_type)?,
+                        dim.internal_format(element_type)
+                            .ok_or_else(|| ImageCreationError::InvalidChannelCount(dim.channels))?,
                         dim.width as i32,
                         dim.height as i32,
                         0,
-                        dim.unsized_format()?,
+                        dim.unsized_format()
+                            .ok_or_else(|| ImageCreationError::InvalidChannelCount(dim.channels))?,
                         element_type.format_type(),
                         None,
                     );
@@ -144,7 +147,7 @@ impl GpuImageData {
         gl: &Rc<tinygl::Context>,
         dim: ImageDim,
         element_type: ImageDataType,
-    ) -> Result<Self, String> {
+    ) -> Result<Self, ImageCreationError> {
         Self::new_nd(
             gl,
             dim,
@@ -155,12 +158,14 @@ impl GpuImageData {
                     gl.tex_image_3d(
                         tinygl::gl::TEXTURE_3D,
                         0,
-                        dim.internal_format(element_type)?,
+                        dim.internal_format(element_type)
+                            .ok_or_else(|| ImageCreationError::InvalidChannelCount(dim.channels))?,
                         dim.width as i32,
                         dim.height as i32,
                         dim.depth as i32,
                         0,
-                        dim.unsized_format()?,
+                        dim.unsized_format()
+                            .ok_or_else(|| ImageCreationError::InvalidChannelCount(dim.channels))?,
                         element_type.format_type(),
                         None,
                     );
@@ -187,7 +192,7 @@ impl GpuImageData {
         self.device_generation += 1;
     }
 
-    fn start_download(&mut self) -> Result<(), String> {
+    fn start_download(&mut self) -> Result<(), Error> {
         unsafe {
             if self.buffer.is_none() {
                 self.buffer = Some(Buffer::new(&*self.gl)?);
@@ -203,13 +208,13 @@ impl GpuImageData {
                 tinygl::gl::DYNAMIC_READ,
             );
 
-            self.gl.check_last_error().map_err(|e| e.to_string())?;
+            self.gl.check_last_error()?;
 
             self.texture.bind(&*self.gl, self.target);
             self.gl.get_tex_image_pixel_buffer_offset(
                 self.target,
                 0,
-                self.dim.unsized_format()?,
+                self.dim.unsized_format().unwrap(),
                 self.element_type.format_type(),
                 0,
             );
@@ -218,7 +223,8 @@ impl GpuImageData {
 
             *self.transfer_sync.borrow_mut() = Some(
                 self.gl
-                    .fence_sync(tinygl::gl::SYNC_GPU_COMMANDS_COMPLETE, 0)?,
+                    .fence_sync(tinygl::gl::SYNC_GPU_COMMANDS_COMPLETE, 0)
+                    .map_err(|err| Error::OpenGlErrorMessage(err))?,
             );
 
             Ok(())
@@ -298,7 +304,7 @@ impl ImageDataBase for GpuImageData {
     fn element_type(&self) -> ImageDataType {
         self.element_type
     }
-    fn sync(&mut self) -> Result<(), String> {
+    fn sync(&mut self) -> Result<(), Error> {
         if self.host_generation != self.device_generation {
             self.start_download()
         } else {
@@ -324,7 +330,7 @@ struct MappedGpuImageMut<'t> {
 }
 
 impl<'t> MappedGpuImage<'t> {
-    fn map(tgt: &'t GpuImageData) -> Result<Self, ImageDataError> {
+    fn map(tgt: &'t GpuImageData) -> std::result::Result<Self, ImageDataError> {
         let mapped_ptr = unsafe { tgt.map_buffer(tinygl::gl::MAP_READ_BIT)? };
 
         Ok(Self { tgt, mapped_ptr })
@@ -340,7 +346,7 @@ impl Drop for MappedGpuImage<'_> {
 }
 
 impl<'t> MappedGpuImageMut<'t> {
-    fn map(tgt: &'t mut GpuImageData) -> Result<Self, ImageDataError> {
+    fn map(tgt: &'t mut GpuImageData) -> std::result::Result<Self, ImageDataError> {
         let mapped_ptr =
             unsafe { tgt.map_buffer(tinygl::gl::MAP_READ_BIT | tinygl::gl::MAP_WRITE_BIT)? };
 
@@ -413,11 +419,13 @@ impl MappedImageDataMut for MappedGpuImageMut<'_> {
 }
 
 impl ImageData for GpuImageData {
-    fn data(&self) -> Result<Box<dyn MappedImageData + '_>, ImageDataError> {
+    fn data(&self) -> std::result::Result<Box<dyn MappedImageData + '_>, ImageDataError> {
         Ok(Box::new(MappedGpuImage::map(self)?))
     }
 
-    fn data_mut(&mut self) -> Result<Box<dyn MappedImageDataMut + '_>, ImageDataError> {
+    fn data_mut(
+        &mut self,
+    ) -> std::result::Result<Box<dyn MappedImageDataMut + '_>, ImageDataError> {
         Ok(Box::new(MappedGpuImageMut::map(self)?))
     }
 }

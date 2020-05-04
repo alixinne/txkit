@@ -7,6 +7,7 @@ use tinygl::prelude::*;
 use tinygl::wrappers::GlHandle;
 
 use crate::image::{gpu::GpuImageData, ImageDim};
+use crate::Result;
 
 /// txkit internal context for GPU computations
 #[allow(dead_code)]
@@ -15,7 +16,7 @@ pub struct GpuContext {
     pub(crate) gl: Rc<tinygl::Context>,
 
     /// VAO for quad rendering
-    pub(crate) vao: <tinygl::glow::Context as HasContext>::VertexArray,
+    pub(crate) vao: tinygl::wrappers::VertexArray,
 
     el: EventLoop<()>,
     context: Context<PossiblyCurrent>,
@@ -35,7 +36,7 @@ impl GpuContext {
         EventLoop::new()
     }
 
-    pub fn new() -> Result<Self, String> {
+    pub fn new() -> Result<Self> {
         let el = Self::get_event_loop();
 
         let sz = glutin::dpi::PhysicalSize::new(512, 512);
@@ -44,13 +45,10 @@ impl GpuContext {
             .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (4, 6)))
             .with_gl_profile(glutin::GlProfile::Core)
             .with_gl_debug_flag(true)
-            .build_headless(&el, sz)
-            .map_err(|_e| "failed to initialize OpenGL context".to_owned())?;
+            .build_headless(&el, sz)?;
 
         let (gl, headless_context) = unsafe {
-            let headless_context = headless_context
-                .make_current()
-                .map_err(|_e| "failed to make OpenGL context current".to_owned())?;
+            let headless_context = headless_context.make_current().map_err(|(_ctx, err)| err)?;
 
             (
                 Rc::new(tinygl::Context::from_loader_function(|s| {
@@ -61,7 +59,7 @@ impl GpuContext {
         };
 
         // Build an empty VAO for quad rendering
-        let vao = unsafe { gl.create_vertex_array() }?;
+        let vao = tinygl::wrappers::VertexArray::new(&gl)?;
 
         let rtt = TextureRenderTarget::new(&gl)?;
 
@@ -77,8 +75,8 @@ impl GpuContext {
     pub fn render_to_framebuffer(
         &mut self,
         tgt: &mut GpuImageData,
-        mut f: impl FnMut(&Rc<tinygl::Context>, u32) -> Result<(), crate::method::Error>,
-    ) -> Result<(), crate::method::Error> {
+        mut f: impl FnMut(&Rc<tinygl::Context>, u32) -> Result<()>,
+    ) -> Result<()> {
         // Setup framebuffer
         let dim = tgt.dim;
 
@@ -92,10 +90,10 @@ impl GpuContext {
         unsafe {
             // Set viewport
             self.gl.viewport(0, 0, dim.width as i32, dim.height as i32);
-
-            // Bind VAO
-            self.gl.bind_vertex_array(Some(self.vao));
         }
+
+        // Bind VAO
+        self.vao.bind(&self.gl);
 
         let mut r = Ok(());
 
@@ -179,7 +177,7 @@ pub struct TextureRenderTarget {
 }
 
 impl TextureRenderTarget {
-    pub fn new(gl: &Rc<tinygl::Context>) -> Result<TextureRenderTarget, String> {
+    pub fn new(gl: &Rc<tinygl::Context>) -> Result<TextureRenderTarget> {
         // Create objects
         Ok(Self {
             framebuffer: GlHandle::new(gl, tinygl::wrappers::Framebuffer::new(gl)?),

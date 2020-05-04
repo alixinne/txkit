@@ -1,5 +1,5 @@
-use failure::Fail;
 use ndarray::{ArrayView4, ArrayViewMut4};
+use thiserror::Error;
 
 use super::{ImageDataType, ImageDim};
 
@@ -12,7 +12,7 @@ pub trait ImageDataBase {
 
     /// Sync the contents of the (mappable) host data with device data.
     /// Required for GPU backends. May be asynchronous.
-    fn sync(&mut self) -> Result<(), String> {
+    fn sync(&mut self) -> crate::Result<()> {
         Ok(())
     }
 
@@ -53,13 +53,13 @@ pub trait MappedImageDataMut {
     }
 }
 
-#[derive(Debug, Fail, Clone, Eq, PartialEq)]
+#[derive(Debug, Error)]
 pub enum ImageDataError {
-    #[fail(display = "unknown mapping error")]
+    #[error("unknown mapping error")]
     UnknownMapping,
-    #[fail(display = "image needs to be synced before being mapped")]
+    #[error("image needs to be synced before being mapped")]
     Unsynced,
-    #[fail(display = "mapping the image failed in the backend, check logs for details")]
+    #[error("mapping the image failed in the backend, check logs for details")]
     MappingFailed,
 }
 

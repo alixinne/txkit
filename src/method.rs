@@ -1,37 +1,8 @@
 use std::any::Any;
 
-use failure::Fail;
-
 use crate::context::Context;
+use crate::error::*;
 use crate::image::Image;
-
-#[derive(Fail, Debug, Clone, Eq, PartialEq)]
-pub enum Error {
-    #[fail(display = "the method doesn't support the given context")]
-    ContextNotSupported,
-    #[fail(display = "the method doesn't support the requested format")]
-    FormatNotSupported,
-    #[fail(display = "the requested method was not found")]
-    MethodNotFound,
-    #[fail(display = "invalid method name")]
-    InvalidMethodName,
-    #[fail(display = "context creation failed: {}", 0)]
-    ContextCreationFailed(String),
-    #[fail(display = "method initialization failed: {}", 0)]
-    MethodInitializationFailed(String),
-    #[fail(display = "mapping image failed: {}", 0)]
-    MappingFailed(crate::image::ImageDataError),
-    #[fail(display = "opengl error: {}", 0)]
-    GlError(String),
-    #[fail(display = "the provided parameters do not apply to the given method")]
-    InvalidParameters,
-}
-
-impl From<crate::image::ImageDataError> for Error {
-    fn from(error: crate::image::ImageDataError) -> Self {
-        Self::MappingFailed(error)
-    }
-}
 
 /// Represents a procedural texturing method
 pub trait Method {
@@ -40,7 +11,7 @@ pub trait Method {
         ctx: &mut Context,
         tgt: &mut Image,
         params: Option<&dyn Any>,
-    ) -> Result<(), Error>;
+    ) -> Result<()>;
 }
 
 /// Wrapped method for FFI

@@ -28,7 +28,7 @@ impl State {
         self.last_error = CString::new("").unwrap();
     }
 
-    pub fn set_last_error(&mut self, e: impl ToString) {
+    pub fn set_last_error(&mut self, e: impl std::fmt::Display) {
         self.last_error = CString::new(e.to_string())
             .unwrap_or_else(|_| CString::new("invalid error message").unwrap());
     }
@@ -38,11 +38,11 @@ pub fn clear_last_error() {
     STATE.lock().unwrap().clear_last_error()
 }
 
-pub fn set_last_error(e: impl ToString) {
+pub fn set_last_error(e: impl std::fmt::Display) {
     STATE.lock().unwrap().set_last_error(e);
 }
 
-pub fn wrap_result<T, E: ToString>(r: impl FnOnce() -> Result<T, E>) -> Option<T> {
+pub fn wrap_result<T, E: std::fmt::Display>(r: impl FnOnce() -> Result<T, E>) -> Option<T> {
     match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         r().map_err(|e| set_last_error(e))
             .map(|v| {
@@ -65,7 +65,7 @@ pub fn wrap_result<T, E: ToString>(r: impl FnOnce() -> Result<T, E>) -> Option<T
     }
 }
 
-pub fn wrap_result_code<E: ToString>(r: impl FnOnce() -> Result<(), E>) -> i32 {
+pub fn wrap_result_code<E: std::fmt::Display>(r: impl FnOnce() -> Result<(), E>) -> i32 {
     match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         r().map_err(|e| set_last_error(e))
             .map(|()| {

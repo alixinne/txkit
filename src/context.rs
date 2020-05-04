@@ -1,3 +1,5 @@
+use crate::Result;
+
 #[cfg(feature = "cpu")]
 mod cpu;
 #[cfg(feature = "cpu")]
@@ -21,26 +23,22 @@ pub enum Context {
 
 impl Context {
     #[cfg(feature = "cpu")]
-    pub fn new_cpu() -> Result<Self, crate::method::Error> {
-        CpuContext::new()
-            .map_err(|e| crate::method::Error::ContextCreationFailed(e))
-            .map(|s| Self::Cpu(s))
+    pub fn new_cpu() -> Result<Self> {
+        CpuContext::new().map(|s| Self::Cpu(s))
     }
 
     #[cfg(not(feature = "cpu"))]
-    pub fn new_cpu() -> Result<Self, crate::method::Error> {
-        Err(crate::method::Error::ContextNotSupported)
+    pub fn new_cpu() -> Result<Self> {
+        Err(Error::ContextNotSupported)
     }
 
     #[cfg(feature = "gpu")]
-    pub fn new_gpu() -> Result<Self, crate::method::Error> {
-        GpuContext::new()
-            .map_err(|e| crate::method::Error::ContextCreationFailed(e))
-            .map(|s| Self::Gpu(s))
+    pub fn new_gpu() -> Result<Self> {
+        GpuContext::new().map(|s| Self::Gpu(s))
     }
 
     #[cfg(not(feature = "gpu"))]
-    pub fn new_gpu() -> Result<Self, crate::method::Error> {
+    pub fn new_gpu() -> Result<Self> {
         Err(crate::method::Error::ContextNotSupported)
     }
 
@@ -85,7 +83,7 @@ macro_rules! cpu_compute {
 
             Ok(())
         } else {
-            Err(crate::method::Error::FormatNotSupported)
+            Err(crate::Error::FormatNotSupported)
         }
     }}
 }

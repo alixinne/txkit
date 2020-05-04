@@ -65,42 +65,41 @@ mod gpu {
     use crate::image::ImageDataType;
 
     use tinygl::gl;
-    use tinygl::prelude::cgmath;
 
     pub trait ImageDimGpuExt {
-        fn internal_format(&self, element_type: ImageDataType) -> Result<i32, String>;
+        fn internal_format(&self, element_type: ImageDataType) -> Option<i32>;
 
-        fn unsized_format(&self) -> Result<u32, String>;
+        fn unsized_format(&self) -> Option<u32>;
 
         fn into_cgmath(&self) -> cgmath::Vector3<u32>;
     }
 
     impl ImageDimGpuExt for ImageDim {
-        fn internal_format(&self, element_type: ImageDataType) -> Result<i32, String> {
+        fn internal_format(&self, element_type: ImageDataType) -> Option<i32> {
             match element_type {
                 ImageDataType::UInt8 => match self.channels {
-                    1 => Ok(gl::R8 as i32),
-                    2 => Ok(gl::RG8 as i32),
-                    3 => Ok(gl::RGB8 as i32),
-                    4 => Ok(gl::RGBA8 as i32),
-                    _ => Err(format!("unsupported number of channels: {}", self.channels)),
+                    1 => Some(gl::R8 as i32),
+                    2 => Some(gl::RG8 as i32),
+                    3 => Some(gl::RGB8 as i32),
+                    4 => Some(gl::RGBA8 as i32),
+                    _ => None,
                 },
                 ImageDataType::Float32 => match self.channels {
-                    1 => Ok(gl::R32F as i32),
-                    2 => Ok(gl::RG32F as i32),
-                    3 => Ok(gl::RGB32F as i32),
-                    4 => Ok(gl::RGBA32F as i32),
-                    _ => Err(format!("unsupported number of channels: {}", self.channels)),
+                    1 => Some(gl::R32F as i32),
+                    2 => Some(gl::RG32F as i32),
+                    3 => Some(gl::RGB32F as i32),
+                    4 => Some(gl::RGBA32F as i32),
+                    _ => None,
                 },
             }
         }
-        fn unsized_format(&self) -> Result<u32, String> {
+        fn unsized_format(&self) -> Option<u32> {
             match self.channels {
-                1 => Ok(gl::RED),
-                2 => Ok(gl::RG),
-                3 => Ok(gl::RGB),
-                4 => Ok(gl::RGBA),
-                _ => Err(format!("unsupported number of channels: {}", self.channels)),
+                1 => Some(gl::RED),
+                2 => Some(gl::RG),
+                3 => Some(gl::RGB),
+                4 => Some(gl::RGBA),
+                _ => None,
             }
         }
 

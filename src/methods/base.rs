@@ -45,7 +45,7 @@ macro_rules! decl_method {
 
         #[cfg(feature = "gpu")]
         impl $gpu_name {
-            fn new(gl: &std::rc::Rc<tinygl::Context>) -> Result<Self, String> {
+            fn new(gl: &std::rc::Rc<tinygl::Context>) -> crate::Result<Self> {
                 Ok(Self {
                     program: tinygl::wrappers::GlHandle::new(gl, <$gpu_program>::build(gl)?)
                 })
@@ -63,7 +63,7 @@ macro_rules! decl_method {
             }
 
             #[cfg(feature = "gpu")]
-            fn prepare_gpu($gl: &tinygl::Context, $prepare_program: &$gpu_program, $prepare_params: &$params_name) -> Result<(), Error> {
+            fn prepare_gpu($gl: &tinygl::Context, $prepare_program: &$gpu_program, $prepare_params: &$params_name) -> crate::Result<()> {
                 $prepare_code
             }
 
@@ -73,21 +73,19 @@ macro_rules! decl_method {
                 gpu_context: &mut crate::context::GpuContext,
                 tgt: &mut Image,
                 params: &$params_name,
-            ) -> Result<(), Error> {
+            ) -> crate::Result<()> {
                 use tinygl::prelude::*;
 
                 // Initialize GPU program
                 if self.gpu.is_none() {
-                    self.gpu = Some($gpu_name::new(&gpu_context.gl)
-                        .map_err(|e| crate::method::Error::MethodInitializationFailed(e))?,
-                    )
+                    self.gpu = Some($gpu_name::new(&gpu_context.gl)?);
                 }
 
                 let dim = tgt.dim().into_cgmath();
                 let gpu = self.gpu.as_ref().unwrap();
 
                 tgt.as_gpu_image_mut()
-                    .ok_or(crate::method::Error::FormatNotSupported)
+                    .ok_or(crate::Error::FormatNotSupported)
                     .and_then(|tgt| {
                         gpu_context.render_to_framebuffer(tgt, |gl, layer| {
                             gpu.program.use_program(gl);
@@ -111,14 +109,14 @@ macro_rules! decl_method {
                 _gpu_context: &mut crate::context::GpuContext,
                 _tgt: &mut Image,
                 _params: &$params_name,
-            ) -> Result<(), Error> {
-                Err(crate::method::Error::ContextNotSupported)
+            ) -> crate::Result<()> {
+                Err(crate::Error::ContextNotSupported)
             }
         }
 
         #[allow(unused_variables)]
         impl Method for $name {
-            fn compute(&mut self, ctx: &mut Context, tgt: &mut Image, params: Option<&dyn std::any::Any>) -> Result<(), Error> {
+            fn compute(&mut self, ctx: &mut Context, tgt: &mut Image, params: Option<&dyn std::any::Any>) -> crate::Result<()> {
                 let default_params;
                 let params: &$params_name = match params {
                     Some(params) => {
@@ -126,14 +124,14 @@ macro_rules! decl_method {
                             p
                         } else if let Some(buf) = params.downcast_ref::<&[u8]>() {
                             if buf.len() != std::mem::size_of::<$params_name>() {
-                                return Err(Error::InvalidParameters);
+                                return Err(crate::Error::InvalidParameters);
                             }
 
                             unsafe {
                                 &*(buf.as_ptr() as *const $params_name)
                             }
                         } else {
-                            return Err(Error::InvalidParameters);
+                            return Err(crate::Error::InvalidParameters);
                         }
                     }
                     None => {
@@ -162,7 +160,7 @@ macro_rules! decl_method {
                 let mut ctx = Context::new_cpu().unwrap();
                 let mut img = Image::new_cpu(ImageDim::new(16, 16, 4), ImageDataType::UInt8);
 
-                assert_eq!(Ok(()), $name::new().compute(&mut ctx, &mut img, None));
+                assert!($name::new().compute(&mut ctx, &mut img, None).is_ok());
             }
         }
     }
