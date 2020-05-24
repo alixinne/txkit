@@ -72,6 +72,10 @@ impl GpuContext {
         })
     }
 
+    pub fn gl(&self) -> Rc<tinygl::Context> {
+        self.gl.clone()
+    }
+
     pub fn render_to_framebuffer(
         &mut self,
         tgt: &mut GpuImageData,
