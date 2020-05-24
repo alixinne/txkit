@@ -55,6 +55,20 @@ impl Context {
             _ => None,
         }
     }
+
+    pub fn cpu_mut(&mut self) -> Option<&mut CpuContext> {
+        match self {
+            Self::Cpu(context) => Some(context),
+            _ => None,
+        }
+    }
+
+    pub fn gpu_mut(&mut self) -> Option<&mut GpuContext> {
+        match self {
+            Self::Gpu(context) => Some(context),
+            _ => None,
+        }
+    }
 }
 
 #[macro_export]
