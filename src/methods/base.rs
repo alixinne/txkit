@@ -88,7 +88,7 @@ macro_rules! decl_method {
                     .ok_or(crate::Error::FormatNotSupported)
                     .and_then(|tgt| {
                         gpu_context.render_to_framebuffer(tgt, |gl, layer| {
-                            gpu.program.use_program(gl);
+                            unsafe { gpu.program.use_program(gl); }
                             gpu.program.set_i_resolution(gl, dim);
                             gpu.program.set_i_layer(gl, layer);
 

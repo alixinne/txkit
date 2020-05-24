@@ -10,6 +10,7 @@ pub enum Error {
     MethodNotFound,
     #[error("invalid method name")]
     InvalidMethodName,
+    #[cfg(feature = "cpu")]
     #[error("cpu context creation failed: {0}")]
     CpuContextCreationFailed(#[from] rayon::ThreadPoolBuildError),
     #[error("method initialization failed: {0}")]

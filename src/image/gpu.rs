@@ -292,8 +292,10 @@ impl Drop for GpuImageData {
     fn drop(&mut self) {
         use tinygl::wrappers::GlDrop;
 
-        self.texture.drop(&*self.gl);
-        self.buffer.take().map(|mut buffer| buffer.drop(&*self.gl));
+        unsafe {
+            self.texture.drop(&*self.gl);
+            self.buffer.take().map(|mut buffer| buffer.drop(&*self.gl));
+        }
     }
 }
 

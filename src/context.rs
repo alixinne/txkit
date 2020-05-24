@@ -29,7 +29,7 @@ impl Context {
 
     #[cfg(not(feature = "cpu"))]
     pub fn new_cpu() -> Result<Self> {
-        Err(Error::ContextNotSupported)
+        Err(crate::Error::ContextNotSupported)
     }
 
     #[cfg(feature = "gpu")]
@@ -39,7 +39,7 @@ impl Context {
 
     #[cfg(not(feature = "gpu"))]
     pub fn new_gpu() -> Result<Self> {
-        Err(crate::method::Error::ContextNotSupported)
+        Err(crate::Error::ContextNotSupported)
     }
 
     pub fn cpu(&self) -> Option<&CpuContext> {
@@ -89,6 +89,7 @@ macro_rules! cpu_compute {
 }
 
 #[cfg(not(feature = "cpu"))]
+#[allow(unused_macros)]
 macro_rules! cpu_compute {
     ($cpu_context:ident, $tgt:ident, $idx:ident => $fn:expr) => {{
         Err(crate::method::Error::ContextNotSupported)

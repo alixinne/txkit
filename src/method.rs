@@ -36,9 +36,11 @@ pub extern "C" fn txkit_method_new(method_name: *const libc::c_char) -> *mut Met
             Err(Error::InvalidMethodName)
         } else {
             match unsafe { std::ffi::CStr::from_ptr(method_name as *const _) }.to_str() {
+                #[cfg(feature = "method-debug")]
                 Ok("debug") => Ok(Box::into_raw(Box::new(MethodBox {
                     method: Box::new(crate::methods::Debug::new()),
                 }))),
+                #[cfg(feature = "method-whitenoise")]
                 Ok("whitenoise") => Ok(Box::into_raw(Box::new(MethodBox {
                     method: Box::new(crate::methods::Whitenoise::new()),
                 }))),
