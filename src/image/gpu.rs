@@ -194,21 +194,28 @@ impl GpuImageData {
 
     fn start_download(&mut self) -> Result<(), Error> {
         unsafe {
-            if self.buffer.is_none() {
+            let initialized_buffer = if self.buffer.is_none() {
                 self.buffer = Some(Buffer::new(&*self.gl)?);
-            }
+                true
+            } else {
+                false
+            };
 
             self.buffer
                 .as_ref()
                 .unwrap()
                 .bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
-            self.gl.buffer_data_size(
-                tinygl::gl::PIXEL_PACK_BUFFER,
-                self.byte_size() as i32,
-                tinygl::gl::DYNAMIC_READ,
-            );
 
-            self.gl.check_last_error()?;
+            if initialized_buffer {
+                // Only needed once since image sizes are immutable
+                self.gl.buffer_data_size(
+                    tinygl::gl::PIXEL_PACK_BUFFER,
+                    self.byte_size() as i32,
+                    tinygl::gl::DYNAMIC_READ,
+                );
+
+                self.gl.check_last_error()?;
+            }
 
             self.texture.bind(&*self.gl, self.target);
             self.gl.get_tex_image_pixel_buffer_offset(
