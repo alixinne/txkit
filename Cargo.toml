@@ -13,7 +13,7 @@ crate-type = ["rlib", "cdylib"]
 log = "0.4.8"
 env_logger = "0.7.1"
 
-tinygl = { git = "https://github.com/vtavernier/tinygl.git", optional = true }
+tinygl = { git = "https://github.com/vtavernier/tinygl.git", optional = true, default-features = false }
 glutin = { version = "0.24.0", optional = true }
 failure = "0.1.7"
 ndarray = "0.13.0"
@@ -28,7 +28,8 @@ cgmath = "0.17"
 thiserror = "1.0"
 
 [build-dependencies]
-tinygl-compiler = { git = "https://github.com/vtavernier/tinygl.git", optional = true }
+anyhow = "1.0"
+tinygl-compiler = { git = "https://github.com/vtavernier/tinygl.git", optional = true, features = ["backend-shaderc", "codegen"] }
 
 [dev-dependencies.cargo-husky]
 version = "1"
@@ -38,7 +39,9 @@ features = ["user-hooks"]
 [features]
 default = ["cpu", "gpu", "builtin", "builtin-gpu"]
 cpu = ["rayon", "ndarray/rayon"]
-gpu = ["tinygl", "glutin"]
+gpu = ["tinygl/opengl46", "gpu-core"]
+gpu45 = ["tinygl/opengl45", "gpu-core"]
+gpu-core = ["tinygl", "glutin"]
 builtin = ["method-debug", "method-whitenoise"]
 builtin-gpu = ["wrap-shaders"]
 method-debug = []

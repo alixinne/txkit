@@ -59,7 +59,7 @@ impl<T> Into<(T, T, T, T)> for ImageDimensions<T> {
 
 pub type ImageDim = ImageDimensions<usize>;
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "gpu-core")]
 mod gpu {
     use super::ImageDim;
     use crate::image::ImageDataType;
@@ -109,5 +109,5 @@ mod gpu {
     }
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "gpu-core")]
 pub use gpu::*;

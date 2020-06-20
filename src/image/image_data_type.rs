@@ -17,7 +17,7 @@ impl ImageDataType {
     }
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "gpu-core")]
 mod gpu {
     use super::ImageDataType;
     use tinygl::gl;
@@ -36,5 +36,5 @@ mod gpu {
     }
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "gpu-core")]
 pub use gpu::*;

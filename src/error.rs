@@ -20,16 +20,16 @@ pub enum Error {
     #[error("the provided parameters do not apply to the given method")]
     InvalidParameters,
 
-    #[cfg(feature = "gpu")]
+    #[cfg(feature = "gpu-core")]
     #[error("gpu context creation failed: {0}")]
     GpuContextCreationFailed(#[from] glutin::CreationError),
-    #[cfg(feature = "gpu")]
+    #[cfg(feature = "gpu-core")]
     #[error("failed to make context current: {0}")]
     GpuContextMakeCurrentFailed(#[from] glutin::ContextError),
-    #[cfg(feature = "gpu")]
+    #[cfg(feature = "gpu-core")]
     #[error("opengl error: {0}")]
     OpenGlError(#[from] tinygl::Error),
-    #[cfg(feature = "gpu")]
+    #[cfg(feature = "gpu-core")]
     #[error("opengl error: {0}")]
     OpenGlErrorMessage(String),
 }

@@ -1,5 +1,5 @@
 mod cpu;
-#[cfg(feature = "gpu")]
+#[cfg(feature = "gpu-core")]
 pub(crate) mod gpu;
 
 mod image_data;
@@ -41,7 +41,7 @@ impl std::ops::DerefMut for Image {
 pub enum ImageCreationError {
     #[error("the context cannot create this type of images")]
     ContextNotSupported,
-    #[cfg(feature = "gpu")]
+    #[cfg(feature = "gpu-core")]
     #[error("failed to create the image: {0}")]
     ImageCreationFailed(#[from] tinygl::Error),
     #[error("unsupported number of channels: {0} (expected <= 4)")]
@@ -60,7 +60,7 @@ impl Image {
         }
     }
 
-    #[cfg(feature = "gpu")]
+    #[cfg(feature = "gpu-core")]
     pub fn new_gpu_1d(
         dim: ImageDim,
         element_type: ImageDataType,
@@ -80,7 +80,7 @@ impl Image {
             })
     }
 
-    #[cfg(feature = "gpu")]
+    #[cfg(feature = "gpu-core")]
     pub fn new_gpu_2d(
         dim: ImageDim,
         element_type: ImageDataType,
@@ -100,7 +100,7 @@ impl Image {
             })
     }
 
-    #[cfg(feature = "gpu")]
+    #[cfg(feature = "gpu-core")]
     pub fn new_gpu_3d(
         dim: ImageDim,
         element_type: ImageDataType,
@@ -120,7 +120,7 @@ impl Image {
             })
     }
 
-    #[cfg(not(feature = "gpu"))]
+    #[cfg(not(feature = "gpu-core"))]
     pub fn new_gpu_1d(
         _dim: ImageDim,
         _element_type: ImageDataType,
@@ -129,7 +129,7 @@ impl Image {
         Err(ImageCreationError::ContextNotSupported)
     }
 
-    #[cfg(not(feature = "gpu"))]
+    #[cfg(not(feature = "gpu-core"))]
     pub fn new_gpu_2d(
         _dim: ImageDim,
         _element_type: ImageDataType,
@@ -138,7 +138,7 @@ impl Image {
         Err(ImageCreationError::ContextNotSupported)
     }
 
-    #[cfg(not(feature = "gpu"))]
+    #[cfg(not(feature = "gpu-core"))]
     pub fn new_gpu_3d(
         _dim: ImageDim,
         _element_type: ImageDataType,

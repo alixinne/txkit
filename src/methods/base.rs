@@ -20,7 +20,7 @@ macro_rules! decl_method {
 
         #[derive(Default)]
         pub struct $name {
-            #[cfg(feature = "gpu")]
+            #[cfg(feature = "gpu-core")]
             gpu: Option<$gpu_name>,
         }
 
@@ -38,12 +38,12 @@ macro_rules! decl_method {
             }
         }
 
-        #[cfg(feature = "gpu")]
+        #[cfg(feature = "gpu-core")]
         struct $gpu_name {
             program: tinygl::wrappers::GlHandle<$gpu_program>,
         }
 
-        #[cfg(feature = "gpu")]
+        #[cfg(feature = "gpu-core")]
         impl $gpu_name {
             fn new(gl: &std::rc::Rc<tinygl::Context>) -> crate::Result<Self> {
                 Ok(Self {
@@ -62,12 +62,12 @@ macro_rules! decl_method {
                 $cpu
             }
 
-            #[cfg(feature = "gpu")]
+            #[cfg(feature = "gpu-core")]
             fn prepare_gpu($gl: &tinygl::Context, $prepare_program: &$gpu_program, $prepare_params: &$params_name) -> crate::Result<()> {
                 $prepare_code
             }
 
-            #[cfg(feature = "gpu")]
+            #[cfg(feature = "gpu-core")]
             fn compute_gpu(
                 &mut self,
                 gpu_context: &mut crate::context::GpuContext,
@@ -103,7 +103,7 @@ macro_rules! decl_method {
                     })
             }
 
-            #[cfg(not(feature = "gpu"))]
+            #[cfg(not(feature = "gpu-core"))]
             fn compute_gpu(
                 &mut self,
                 _gpu_context: &mut crate::context::GpuContext,

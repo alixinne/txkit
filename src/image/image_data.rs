@@ -16,13 +16,13 @@ pub trait ImageDataBase {
         Ok(())
     }
 
-    #[cfg(feature = "gpu")]
+    #[cfg(feature = "gpu-core")]
     /// Get the image data as a GpuImageData reference if possible
     fn as_gpu_image(&self) -> Option<&super::gpu::GpuImageData> {
         None
     }
 
-    #[cfg(feature = "gpu")]
+    #[cfg(feature = "gpu-core")]
     /// Get the image data as a mutable GpuImageData reference if possible
     fn as_gpu_image_mut(&mut self) -> Option<&mut super::gpu::GpuImageData> {
         None

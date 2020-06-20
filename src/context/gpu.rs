@@ -3,7 +3,6 @@ use std::rc::Rc;
 use glutin::event_loop::EventLoop;
 use glutin::{Context, ContextBuilder, PossiblyCurrent};
 
-use tinygl::prelude::*;
 use tinygl::wrappers::GlHandle;
 
 use crate::image::{gpu::GpuImageData, ImageDim};
@@ -42,7 +41,10 @@ impl GpuContext {
         let sz = glutin::dpi::PhysicalSize::new(512, 512);
 
         let headless_context = ContextBuilder::new()
-            .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (4, 6)))
+            .with_gl(glutin::GlRequest::Specific(
+                glutin::Api::OpenGl,
+                tinygl::opengl_version(),
+            ))
             .with_gl_profile(glutin::GlProfile::Core)
             .with_gl_debug_flag(true)
             .build_headless(&el, sz)?;
@@ -84,93 +86,88 @@ impl GpuContext {
         // Setup framebuffer
         let dim = tgt.dim;
 
-        // Set target framebuffer
-        self.rtt
-            .framebuffer
-            .bind(&*self.gl, tinygl::gl::FRAMEBUFFER);
-
-        self.rtt.alloc(&self.gl, dim);
-
         unsafe {
+            // Set target framebuffer
+            self.rtt
+                .framebuffer
+                .bind(&*self.gl, tinygl::gl::FRAMEBUFFER);
+
+            self.rtt.alloc(&self.gl, dim);
+
             // Set viewport
             self.gl.viewport(0, 0, dim.width as i32, dim.height as i32);
-        }
 
-        // Bind VAO
-        self.vao.bind(&self.gl);
+            // Bind VAO
+            self.vao.bind(&self.gl);
 
-        let mut r = Ok(());
+            let mut r = Ok(());
 
-        match tgt.target() {
-            tinygl::gl::TEXTURE_2D => {
-                tgt.texture.bind(&*self.gl, tinygl::gl::TEXTURE_2D);
-
-                // Set texture
-                self.rtt.framebuffer.texture_2d(
-                    &*self.gl,
-                    tinygl::gl::FRAMEBUFFER,
-                    tinygl::gl::COLOR_ATTACHMENT0,
-                    tinygl::gl::TEXTURE_2D,
-                    Some(&tgt.texture),
-                    0,
-                );
-            }
-            tinygl::gl::TEXTURE_3D => {
-                tgt.texture.bind(&*self.gl, tinygl::gl::TEXTURE_3D);
-            }
-            _ => panic!("invalid texture target"),
-        }
-
-        for layer in 0..dim.depth {
             match tgt.target() {
-                tinygl::gl::TEXTURE_2D => {}
-                tinygl::gl::TEXTURE_3D => {
+                tinygl::gl::TEXTURE_2D => {
+                    tgt.texture.bind(&*self.gl, tinygl::gl::TEXTURE_2D);
+
                     // Set texture
-                    self.rtt.framebuffer.texture_3d(
-                        &*self.gl,
+                    self.gl.framebuffer_texture_2d(
                         tinygl::gl::FRAMEBUFFER,
                         tinygl::gl::COLOR_ATTACHMENT0,
-                        tinygl::gl::TEXTURE_3D,
+                        tinygl::gl::TEXTURE_2D,
                         Some(&tgt.texture),
                         0,
-                        layer as i32,
                     );
+                }
+                tinygl::gl::TEXTURE_3D => {
+                    tgt.texture.bind(&*self.gl, tinygl::gl::TEXTURE_3D);
                 }
                 _ => panic!("invalid texture target"),
             }
 
-            // Setup draw buffers
-            //self.gl.draw_buffers(&[tinygl::gl::COLOR_ATTACHMENT0]);
+            for layer in 0..dim.depth {
+                match tgt.target() {
+                    tinygl::gl::TEXTURE_2D => {}
+                    tinygl::gl::TEXTURE_3D => {
+                        // Set texture
+                        self.gl.framebuffer_texture_3d(
+                            tinygl::gl::FRAMEBUFFER,
+                            tinygl::gl::COLOR_ATTACHMENT0,
+                            tinygl::gl::TEXTURE_3D,
+                            Some(&tgt.texture),
+                            0,
+                            layer as i32,
+                        );
+                    }
+                    _ => panic!("invalid texture target"),
+                }
 
-            // Call rendering method
-            r = f(&self.gl, layer as u32);
-            if r.is_err() {
-                // Abort rendering on first layer error
-                break;
+                // Setup draw buffers
+                //self.gl.draw_buffers(&[tinygl::gl::COLOR_ATTACHMENT0]);
+
+                // Call rendering method
+                r = f(&self.gl, layer as u32);
+                if r.is_err() {
+                    // Abort rendering on first layer error
+                    break;
+                }
             }
-        }
 
-        // We changed the contents of the texture on GPU, it needs
-        // to be downloaded before being mapped again
-        tgt.invalidate_host();
+            // We changed the contents of the texture on GPU, it needs
+            // to be downloaded before being mapped again
+            tgt.invalidate_host();
 
-        // Cleanup
-        // Unbind texture from framebuffer
-        self.rtt.framebuffer.texture(
-            &*self.gl,
-            tinygl::gl::FRAMEBUFFER,
-            tinygl::gl::COLOR_ATTACHMENT0,
-            None,
-            0,
-        );
+            // Cleanup
+            // Unbind texture from framebuffer
+            self.gl.framebuffer_texture(
+                tinygl::gl::FRAMEBUFFER,
+                tinygl::gl::COLOR_ATTACHMENT0,
+                None,
+                0,
+            );
 
-        unsafe {
             self.gl.bind_texture(tgt.target(), None);
             self.gl.bind_vertex_array(None);
             self.gl.bind_framebuffer(tinygl::gl::FRAMEBUFFER, None);
-        }
 
-        r
+            r
+        }
     }
 }
 
@@ -205,15 +202,15 @@ impl TextureRenderTarget {
                     new_size.y,
                 );
                 gl.bind_renderbuffer(tinygl::gl::RENDERBUFFER, None);
-            }
 
-            if self.current_size.is_none() {
-                self.framebuffer.renderbuffer(
-                    gl,
-                    tinygl::gl::FRAMEBUFFER,
-                    tinygl::gl::DEPTH_ATTACHMENT,
-                    Some(&self.depthbuffer),
-                );
+                if self.current_size.is_none() {
+                    gl.framebuffer_renderbuffer(
+                        tinygl::gl::FRAMEBUFFER,
+                        tinygl::gl::DEPTH_ATTACHMENT,
+                        tinygl::gl::RENDERBUFFER,
+                        Some(&self.depthbuffer),
+                    );
+                }
             }
 
             // Update size

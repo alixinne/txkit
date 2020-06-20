@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use tinygl::prelude::*;
 use tinygl::wrappers::{Buffer, GlRefHandle, Texture};
 
 use super::*;
@@ -15,7 +14,7 @@ pub struct GpuImageData {
     pub(crate) dim: ImageDim,
 
     target: u32,
-    transfer_sync: RefCell<Option<<tinygl::glow::Context as tinygl::glow::HasContext>::Fence>>,
+    transfer_sync: RefCell<Option<tinygl::gl::Fence>>,
 
     device_generation: u32,
     host_generation: u32,
@@ -30,34 +29,35 @@ impl GpuImageData {
         allocator: impl Fn(ImageDim, ImageDataType) -> Result<(), ImageCreationError>,
     ) -> Result<Self, ImageCreationError> {
         let texture = GlRefHandle::new(&*gl, Texture::new(gl)?);
-        texture.bind(gl, target);
 
-        // Allocation result
-        let res = unsafe {
-            gl.tex_parameter_i32(
-                target,
-                tinygl::gl::TEXTURE_MIN_FILTER,
-                tinygl::gl::NEAREST as i32,
-            );
-
-            gl.tex_parameter_i32(
-                target,
-                tinygl::gl::TEXTURE_MAG_FILTER,
-                tinygl::gl::NEAREST as i32,
-            );
-
-            allocator(dim, element_type)?;
-
-            // Check that the allocation succeeded
-            gl.check_last_error()
-        };
-
-        // Unbind texture after allocation
         unsafe {
-            gl.bind_texture(target, None);
-        }
+            texture.bind(gl, target);
 
-        res?;
+            // Allocation result
+            let res = {
+                gl.tex_parameteri(
+                    target,
+                    tinygl::gl::TEXTURE_MIN_FILTER,
+                    tinygl::gl::NEAREST as i32,
+                );
+
+                gl.tex_parameteri(
+                    target,
+                    tinygl::gl::TEXTURE_MAG_FILTER,
+                    tinygl::gl::NEAREST as i32,
+                );
+
+                allocator(dim, element_type)?;
+
+                // Check that the allocation succeeded
+                gl.check_last_error()
+            };
+
+            // Unbind texture after allocation
+            gl.bind_texture(target, None);
+
+            res?
+        };
 
         Ok(Self {
             gl: gl.clone(),
@@ -208,9 +208,10 @@ impl GpuImageData {
 
             if initialized_buffer {
                 // Only needed once since image sizes are immutable
-                self.gl.buffer_data_size(
+                self.gl.buffer_data(
                     tinygl::gl::PIXEL_PACK_BUFFER,
-                    self.byte_size() as i32,
+                    self.byte_size() as isize,
+                    std::ptr::null(),
                     tinygl::gl::DYNAMIC_READ,
                 );
 
@@ -218,21 +219,29 @@ impl GpuImageData {
             }
 
             self.texture.bind(&*self.gl, self.target);
-            self.gl.get_tex_image_pixel_buffer_offset(
+            self.gl.get_tex_image(
                 self.target,
                 0,
                 self.dim.unsized_format().unwrap(),
                 self.element_type.format_type(),
-                0,
+                std::ptr::null_mut(),
             );
 
             self.gl.bind_buffer(tinygl::gl::PIXEL_PACK_BUFFER, None);
 
-            *self.transfer_sync.borrow_mut() = Some(
-                self.gl
-                    .fence_sync(tinygl::gl::SYNC_GPU_COMMANDS_COMPLETE, 0)
-                    .map_err(|err| Error::OpenGlErrorMessage(err))?,
-            );
+            *self.transfer_sync.borrow_mut() = Some({
+                let fence = self
+                    .gl
+                    .fence_sync(tinygl::gl::SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+                if fence == std::ptr::null() {
+                    return Err(Error::OpenGlError(tinygl::Error::OpenGlError(
+                        tinygl::OpenGlErrorCode(self.gl.get_error()),
+                    )));
+                }
+
+                fence
+            });
 
             Ok(())
         }
@@ -273,7 +282,7 @@ impl GpuImageData {
         let ptr = self.gl.map_buffer_range(
             tinygl::gl::PIXEL_PACK_BUFFER,
             0,
-            self.byte_size() as i32,
+            self.byte_size() as isize,
             usage,
         );
 
@@ -282,7 +291,7 @@ impl GpuImageData {
         if ptr == std::ptr::null_mut() {
             Err(ImageDataError::MappingFailed)
         } else {
-            Ok(ptr)
+            Ok(ptr as *mut u8)
         }
     }
 
