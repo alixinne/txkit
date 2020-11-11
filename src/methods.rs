@@ -10,3 +10,8 @@ pub use debug::*;
 mod whitenoise;
 #[cfg(feature = "method-whitenoise")]
 pub use whitenoise::*;
+
+#[cfg(feature = "method-valuenoise")]
+mod valuenoise;
+#[cfg(feature = "method-valuenoise")]
+pub use valuenoise::*;

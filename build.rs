@@ -35,6 +35,8 @@ fn wrap_shaders() -> anyhow::Result<()> {
     let debug_prog;
     let whitenoise_frag;
     let whitenoise_prog;
+    let valuenoise_frag;
+    let valuenoise_prog;
 
     let mut compiler = Compiler::new(false, None).unwrap().with_shaderc();
     let reflector = reflect::SpirVBackend::new();
@@ -73,6 +75,21 @@ fn wrap_shaders() -> anyhow::Result<()> {
             whitenoise_prog,
             "shaders/whitenoise.frag",
             "whitenoise",
+            prefer_spirv,
+            wrapped,
+            set,
+            compiler,
+            reflector,
+            quad_vert
+        );
+    }
+
+    if cfg!(feature = "method-valuenoise") {
+        compile_method!(
+            valuenoise_frag,
+            valuenoise_prog,
+            "shaders/valuenoise.frag",
+            "valuenoise",
             prefer_spirv,
             wrapped,
             set,

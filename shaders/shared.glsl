@@ -8,6 +8,17 @@ uint hash(in uint x) {
     return x;
 }
 
+uint morton(uint x, uint y) {
+    uint z = 0;
+    for (int i = 0; i < 32 * 4; i++) {
+        z |= ((x & (1 << i)) << i) | ((y & (1 << i)) << (i + 1));
+    }
+    return z;
+}
+
+// vec2 version
+uint hash(in uvec2 x) { return hash(morton(x.x, x.y)); }
+
 // Converts a vector of unsigned ints to floats in [0,1]
 float tofloat(uint u) {
     // Slower, but generates all dyadic rationals of the form k / 2^-24 equally
