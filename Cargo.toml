@@ -46,11 +46,12 @@ cpu = ["rayon", "ndarray/rayon"]
 gpu = ["tinygl/opengl46", "gpu-core"]
 gpu45 = ["tinygl/opengl45", "gpu-core"]
 gpu-core = ["tinygl", "glutin"]
-builtin = ["method-debug", "method-whitenoise", "method-valuenoise"]
+builtin = ["method-debug", "method-whitenoise", "method-valuenoise", "method-gradientnoise"]
 builtin-gpu = ["wrap-shaders"]
 method-debug = []
 method-whitenoise = []
 method-valuenoise = []
+method-gradientnoise = []
 wrap-shaders = ["tinygl-compiler"]
 
 [[example]]
@@ -64,3 +65,7 @@ required-features = ["method-whitenoise", "gpu-core"]
 [[example]]
 name = "valuenoise"
 required-features = ["method-valuenoise", "gpu-core"]
+
+[[example]]
+name = "gradientnoise"
+required-features = ["method-gradientnoise", "gpu-core"]

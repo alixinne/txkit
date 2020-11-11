@@ -37,6 +37,8 @@ fn wrap_shaders() -> anyhow::Result<()> {
     let whitenoise_prog;
     let valuenoise_frag;
     let valuenoise_prog;
+    let gradientnoise_frag;
+    let gradientnoise_prog;
 
     let mut compiler = Compiler::new(false, None).unwrap().with_shaderc();
     let reflector = reflect::SpirVBackend::new();
@@ -90,6 +92,21 @@ fn wrap_shaders() -> anyhow::Result<()> {
             valuenoise_prog,
             "shaders/valuenoise.frag",
             "valuenoise",
+            prefer_spirv,
+            wrapped,
+            set,
+            compiler,
+            reflector,
+            quad_vert
+        );
+    }
+
+    if cfg!(feature = "method-gradientnoise") {
+        compile_method!(
+            gradientnoise_frag,
+            gradientnoise_prog,
+            "shaders/gradientnoise.frag",
+            "gradientnoise",
             prefer_spirv,
             wrapped,
             set,

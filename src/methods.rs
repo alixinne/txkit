@@ -15,3 +15,8 @@ pub use whitenoise::*;
 mod valuenoise;
 #[cfg(feature = "method-valuenoise")]
 pub use valuenoise::*;
+
+#[cfg(feature = "method-gradientnoise")]
+mod gradientnoise;
+#[cfg(feature = "method-gradientnoise")]
+pub use gradientnoise::*;
