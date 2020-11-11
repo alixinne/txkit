@@ -17,11 +17,3 @@ pub use error::{Error, Result};
 mod shaders {
     include!(concat!(env!("OUT_DIR"), "/shaders.rs"));
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
