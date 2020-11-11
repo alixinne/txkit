@@ -31,6 +31,10 @@ thiserror = "1.0"
 anyhow = "1.0"
 tinygl-compiler = { git = "https://github.com/vtavernier/tinygl.git", optional = true, features = ["backend-shaderc", "codegen"] }
 
+[dev-dependencies]
+anyhow = "1.0"
+image = "0.23.11"
+
 [dev-dependencies.cargo-husky]
 version = "1"
 default-features = false
@@ -48,3 +52,15 @@ method-debug = []
 method-whitenoise = []
 method-valuenoise = []
 wrap-shaders = ["tinygl-compiler"]
+
+[[example]]
+name = "debug"
+required-features = ["method-debug", "gpu-core"]
+
+[[example]]
+name = "whitenoise"
+required-features = ["method-whitenoise", "gpu-core"]
+
+[[example]]
+name = "valuenoise"
+required-features = ["method-valuenoise", "gpu-core"]
