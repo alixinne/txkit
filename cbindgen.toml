@@ -41,4 +41,3 @@ include = ["cgmath", "tinygl"]
 
 [parse.expand]
 crates = ["txkit"]
-all_features = true
