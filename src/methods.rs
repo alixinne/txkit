@@ -6,17 +6,17 @@ mod debug;
 #[cfg(feature = "method-debug")]
 pub use debug::*;
 
-#[cfg(feature = "method-whitenoise")]
-mod whitenoise;
-#[cfg(feature = "method-whitenoise")]
-pub use whitenoise::*;
+#[cfg(feature = "method-white-noise")]
+mod white_noise;
+#[cfg(feature = "method-white-noise")]
+pub use white_noise::*;
 
-#[cfg(feature = "method-valuenoise")]
-mod valuenoise;
-#[cfg(feature = "method-valuenoise")]
-pub use valuenoise::*;
+#[cfg(feature = "method-value-noise")]
+mod value_noise;
+#[cfg(feature = "method-value-noise")]
+pub use value_noise::*;
 
-#[cfg(feature = "method-gradientnoise")]
-mod gradientnoise;
-#[cfg(feature = "method-gradientnoise")]
-pub use gradientnoise::*;
+#[cfg(feature = "method-gradient-noise")]
+mod gradient_noise;
+#[cfg(feature = "method-gradient-noise")]
+pub use gradient_noise::*;

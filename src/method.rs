@@ -40,9 +40,9 @@ pub extern "C" fn txkit_method_new(method_name: *const libc::c_char) -> *mut Met
                 Ok("debug") => Ok(Box::into_raw(Box::new(MethodBox {
                     method: Box::new(crate::methods::Debug::new()),
                 }))),
-                #[cfg(feature = "method-whitenoise")]
-                Ok("whitenoise") => Ok(Box::into_raw(Box::new(MethodBox {
-                    method: Box::new(crate::methods::Whitenoise::new()),
+                #[cfg(feature = "method-white-noise")]
+                Ok("white_noise") => Ok(Box::into_raw(Box::new(MethodBox {
+                    method: Box::new(crate::methods::WhiteNoise::new()),
                 }))),
                 Ok(_) => Err(Error::MethodNotFound),
                 Err(_) => Err(Error::InvalidMethodName),

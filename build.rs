@@ -33,12 +33,12 @@ fn wrap_shaders() -> anyhow::Result<()> {
 
     let debug_frag;
     let debug_prog;
-    let whitenoise_frag;
-    let whitenoise_prog;
-    let valuenoise_frag;
-    let valuenoise_prog;
-    let gradientnoise_frag;
-    let gradientnoise_prog;
+    let white_noise_frag;
+    let white_noise_prog;
+    let value_noise_frag;
+    let value_noise_prog;
+    let gradient_noise_frag;
+    let gradient_noise_prog;
 
     let mut compiler = Compiler::new(false, None).unwrap().with_shaderc();
     let reflector = reflect::SpirVBackend::new();
@@ -71,12 +71,12 @@ fn wrap_shaders() -> anyhow::Result<()> {
         );
     }
 
-    if cfg!(feature = "method-whitenoise") {
+    if cfg!(feature = "method-white-noise") {
         compile_method!(
-            whitenoise_frag,
-            whitenoise_prog,
-            "shaders/whitenoise.frag",
-            "whitenoise",
+            white_noise_frag,
+            white_noise_prog,
+            "shaders/white_noise.frag",
+            "white_noise",
             prefer_spirv,
             wrapped,
             set,
@@ -86,12 +86,12 @@ fn wrap_shaders() -> anyhow::Result<()> {
         );
     }
 
-    if cfg!(feature = "method-valuenoise") {
+    if cfg!(feature = "method-value-noise") {
         compile_method!(
-            valuenoise_frag,
-            valuenoise_prog,
-            "shaders/valuenoise.frag",
-            "valuenoise",
+            value_noise_frag,
+            value_noise_prog,
+            "shaders/value_noise.frag",
+            "value_noise",
             prefer_spirv,
             wrapped,
             set,
@@ -101,12 +101,12 @@ fn wrap_shaders() -> anyhow::Result<()> {
         );
     }
 
-    if cfg!(feature = "method-gradientnoise") {
+    if cfg!(feature = "method-gradient-noise") {
         compile_method!(
-            gradientnoise_frag,
-            gradientnoise_prog,
-            "shaders/gradientnoise.frag",
-            "gradientnoise",
+            gradient_noise_frag,
+            gradient_noise_prog,
+            "shaders/gradient_noise.frag",
+            "gradient_noise",
             prefer_spirv,
             wrapped,
             set,

@@ -3,7 +3,7 @@ use common::*;
 
 fn main() -> Result<()> {
     Ok(write_gpu_method_result(
-        || txkit::methods::Gradientnoise::new(),
-        "gradientnoise",
+        || txkit::methods::ValueNoise::new(),
+        "value_noise",
     )?)
 }

@@ -14,7 +14,7 @@ documentation_style = "doxy"
 
 [export]
 include = [
-	"WhitenoiseParams",
+	"WhiteNoiseParams",
 	"DebugParams",
 ]
 

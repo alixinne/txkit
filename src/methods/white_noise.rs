@@ -1,14 +1,14 @@
 decl_method! {
-    name Whitenoise;
+    name WhiteNoise;
     gpu {
-        name WhitenoiseGpu;
-        program crate::shaders::WhitenoiseProgram;
+        name WhiteNoiseGpu;
+        program crate::shaders::WhiteNoiseProgram;
         prepare (_gl, _program, _params) => {
             Ok(())
         };
     }
     params {
-        WhitenoiseParams {
+        WhiteNoiseParams {
         }
     }
     cpu ((k, j, i, l), sz, _params) -> f32 => {

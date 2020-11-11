@@ -1,14 +1,14 @@
 decl_method! {
-    name Valuenoise;
+    name ValueNoise;
     gpu {
-        name ValuenoiseGpu;
-        program crate::shaders::ValuenoiseProgram;
+        name ValueNoiseGpu;
+        program crate::shaders::ValueNoiseProgram;
         prepare (_gl, _program, _params) => {
             Ok(())
         };
     }
     params {
-        ValuenoiseParams {
+        ValueNoiseParams {
         }
     }
 }

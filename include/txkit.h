@@ -63,7 +63,7 @@ typedef TxKit_ImageDimensions_usize TxKit_ImageDim;
 
 typedef struct {
 
-} TxKit_WhitenoiseParams;
+} TxKit_WhiteNoiseParams;
 
 typedef struct {
     float alpha_value;
