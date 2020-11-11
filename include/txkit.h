@@ -63,6 +63,14 @@ typedef TxKit_ImageDimensions_usize TxKit_ImageDim;
 
 typedef struct {
 
+} TxKit_GradientNoiseParams;
+
+typedef struct {
+
+} TxKit_ValueNoiseParams;
+
+typedef struct {
+
 } TxKit_WhiteNoiseParams;
 
 typedef struct {
