@@ -1,0 +1,17 @@
+[package]
+name = "txkit-cli"
+version = "0.1.0"
+authors = ["Vincent Tavernier <vince.tavernier@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+txkit-builtin = "=0.1.0"
+txkit-core = "=0.1.0"
+
+argh = "0.1.4"
+color-eyre = "0.5.7"
+image = "0.23.11"
+strum = "0.19"
+strum_macros = "0.19"
+env_logger = "0.8.1"
+log = "0.4.11"

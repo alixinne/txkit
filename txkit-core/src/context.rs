@@ -75,7 +75,7 @@ impl Context {
 #[cfg(feature = "cpu")]
 macro_rules! cpu_compute {
     ($cpu_context:ident, $tgt:ident, $idx:ident => $fn:expr) => {{
-        use crate::image::IntoElementType;
+        use ::txkit_core::image::IntoElementType;
         use ndarray::par_azip;
 
         let mut data_mut = $tgt.data_mut()?;
@@ -97,7 +97,7 @@ macro_rules! cpu_compute {
 
             Ok(())
         } else {
-            Err(crate::Error::FormatNotSupported)
+            Err(::txkit_core::Error::FormatNotSupported)
         }
     }}
 }

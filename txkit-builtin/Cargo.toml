@@ -1,0 +1,26 @@
+[package]
+name = "txkit-builtin"
+version = "0.1.0"
+authors = ["Vincent Tavernier <vince.tavernier@gmail.com>"]
+edition = "2018"
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+txkit-core = "=0.1.0"
+
+ndarray = "0.13.0"
+tinygl = { git = "https://github.com/vtavernier/tinygl.git", optional = true, default-features = false }
+
+[build-dependencies]
+anyhow = "1.0"
+tinygl-compiler = { git = "https://github.com/vtavernier/tinygl.git", optional = true, features = ["backend-shaderc", "codegen"] }
+
+[features]
+default = ["cpu", "gpu"]
+cpu = ["txkit-core/cpu"]
+gpu = ["txkit-core/gpu", "wrap-shaders", "tinygl"]
+gpu45 = ["txkit-core/gpu45", "wrap-shaders", "tinygl"]
+wrap-shaders = ["tinygl-compiler"]

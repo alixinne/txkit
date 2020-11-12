@@ -2,7 +2,7 @@ use crate::Result;
 
 /// txkit internal context for CPU computations
 pub struct CpuContext {
-    pub(crate) thread_pool: rayon::ThreadPool,
+    pub thread_pool: rayon::ThreadPool,
 }
 
 impl CpuContext {

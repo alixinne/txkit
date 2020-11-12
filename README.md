@@ -1,4 +1,4 @@
-# txkit
+# txkit-core
 
 [![Build Status](https://travis-ci.com/vtavernier/txkit.svg?branch=master)](https://travis-ci.com/vtavernier/txkit)
 

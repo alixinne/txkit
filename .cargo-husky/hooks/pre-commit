@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -euxo pipefail
 
 # Check style using cargo fmt
 if ! cargo fmt -- --check ; then
@@ -16,12 +16,25 @@ fi
 
 # Commit txkit.h if sources have changed
 if [ -n "$(git status --porcelain src cbindgen.toml | awk '/^M /')" ]; then
-    rustup run nightly cbindgen -o include/txkit.h
-    git add include/txkit.h
+    (
+        cd txkit-core
+        rustup run nightly cbindgen -o ../include/txkit_core.h -c ../cbindgen.toml
+    )
+
+    (
+        cd txkit-builtin
+        rustup run nightly cbindgen -o ../include/txkit_builtin.h -c ../cbindgen.toml
+    )
+
+    git add include/txkit_core.h include/txkit_builtin.h
 fi
 
 # Generate README unless README.tpl isn't staged
 if [ -z "$(git status --porcelain README.tpl)" ]; then
-    cargo readme -o README.md
+    (
+        cd txkit-core
+        cargo readme -o ../README.md
+    )
+
     git add README.md
 fi

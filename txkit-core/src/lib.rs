@@ -10,12 +10,5 @@ pub mod context;
 mod error;
 pub mod image;
 pub mod method;
-pub mod methods;
 
 pub use error::{Error, Result};
-
-#[cfg(all(feature = "gpu", feature = "wrap-shaders"))]
-#[allow(dead_code)]
-mod shaders {
-    include!(concat!(env!("OUT_DIR"), "/shaders.rs"));
-}

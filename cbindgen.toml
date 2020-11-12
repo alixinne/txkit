@@ -1,8 +1,5 @@
 language = "C"
-includes = ["txkit_extra.h"]
 cpp_compat = true
-
-include_guard = "TXKIT_H"
 
 tab_width = 4
 
@@ -42,4 +39,4 @@ parse_deps = true
 include = ["cgmath", "tinygl"]
 
 [parse.expand]
-crates = ["txkit"]
+crates = ["txkit-core", "txkit-builtin"]

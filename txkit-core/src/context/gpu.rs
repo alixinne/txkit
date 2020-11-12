@@ -12,10 +12,10 @@ use crate::Result;
 #[allow(dead_code)]
 pub struct GpuContext {
     /// gl function loader instance
-    pub(crate) gl: Rc<tinygl::Context>,
+    pub gl: Rc<tinygl::Context>,
 
     /// VAO for quad rendering
-    pub(crate) vao: tinygl::wrappers::VertexArray,
+    pub vao: tinygl::wrappers::VertexArray,
 
     el: EventLoop<()>,
     context: Context<PossiblyCurrent>,

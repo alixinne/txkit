@@ -14,13 +14,14 @@ macro_rules! decl_method {
         }
         cpu (($k:ident, $j:ident, $i:ident, $l:ident), $dim:ident, $params:ident) -> $t:ty => $cpu:expr
     } => {
-        use crate::context::Context;
-        use crate::image::prelude::*;
-        use crate::method::*;
+        use ::txkit_core::context::Context;
+        use ::txkit_core::image::prelude::*;
+        use ::txkit_core::method::*;
+        use ::txkit_core::cpu_compute;
 
         #[derive(Default)]
         pub struct $name {
-            #[cfg(feature = "gpu-core")]
+            #[cfg(feature = "gpu")]
             gpu: Option<$gpu_name>,
         }
 
@@ -38,14 +39,14 @@ macro_rules! decl_method {
             }
         }
 
-        #[cfg(feature = "gpu-core")]
+        #[cfg(feature = "gpu")]
         struct $gpu_name {
             program: tinygl::wrappers::GlHandle<$gpu_program>,
         }
 
-        #[cfg(feature = "gpu-core")]
+        #[cfg(feature = "gpu")]
         impl $gpu_name {
-            fn new(gl: &std::rc::Rc<tinygl::Context>) -> crate::Result<Self> {
+            fn new(gl: &std::rc::Rc<tinygl::Context>) -> ::txkit_core::Result<Self> {
                 Ok(Self {
                     program: tinygl::wrappers::GlHandle::new(gl, <$gpu_program>::build(gl)?)
                 })
@@ -58,22 +59,22 @@ macro_rules! decl_method {
             }
 
             #[cfg(feature = "cpu")]
-            fn compute_idx(($k, $j, $i, $l): (usize, usize, usize, usize), $dim: crate::image::ImageDim, $params: &$params_name) -> $t {
+            fn compute_idx(($k, $j, $i, $l): (usize, usize, usize, usize), $dim: ::txkit_core::image::ImageDim, $params: &$params_name) -> $t {
                 $cpu
             }
 
-            #[cfg(feature = "gpu-core")]
-            fn prepare_gpu($gl: &tinygl::Context, $prepare_program: &$gpu_program, $prepare_params: &$params_name) -> crate::Result<()> {
+            #[cfg(feature = "gpu")]
+            fn prepare_gpu($gl: &tinygl::Context, $prepare_program: &$gpu_program, $prepare_params: &$params_name) -> ::txkit_core::Result<()> {
                 $prepare_code
             }
 
-            #[cfg(feature = "gpu-core")]
+            #[cfg(feature = "gpu")]
             fn compute_gpu(
                 &mut self,
-                gpu_context: &mut crate::context::GpuContext,
+                gpu_context: &mut ::txkit_core::context::GpuContext,
                 tgt: &mut Image,
                 params: &$params_name,
-            ) -> crate::Result<()> {
+            ) -> ::txkit_core::Result<()> {
                 use tinygl::prelude::*;
 
                 // Initialize GPU program
@@ -85,7 +86,7 @@ macro_rules! decl_method {
                 let gpu = self.gpu.as_ref().unwrap();
 
                 tgt.as_gpu_image_mut()
-                    .ok_or(crate::Error::FormatNotSupported)
+                    .ok_or(::txkit_core::Error::FormatNotSupported)
                     .and_then(|tgt| {
                         gpu_context.render_to_framebuffer(tgt, |gl, layer| {
                             unsafe { gpu.program.use_program(gl); }
@@ -103,20 +104,20 @@ macro_rules! decl_method {
                     })
             }
 
-            #[cfg(not(feature = "gpu-core"))]
+            #[cfg(not(feature = "gpu"))]
             fn compute_gpu(
                 &mut self,
-                _gpu_context: &mut crate::context::GpuContext,
+                _gpu_context: &mut ::txkit_core::context::GpuContext,
                 _tgt: &mut Image,
                 _params: &$params_name,
-            ) -> crate::Result<()> {
-                Err(crate::Error::ContextNotSupported)
+            ) -> ::txkit_core::Result<()> {
+                Err(::txkit_core::Error::ContextNotSupported)
             }
         }
 
         #[allow(unused_variables)]
         impl Method for $name {
-            fn compute(&mut self, ctx: &mut Context, tgt: &mut Image, params: Option<&dyn std::any::Any>) -> crate::Result<()> {
+            fn compute(&mut self, ctx: &mut Context, tgt: &mut Image, params: Option<&dyn std::any::Any>) -> ::txkit_core::Result<()> {
                 let default_params;
                 let params: &$params_name = match params {
                     Some(params) => {
@@ -124,14 +125,14 @@ macro_rules! decl_method {
                             p
                         } else if let Some(buf) = params.downcast_ref::<&[u8]>() {
                             if buf.len() != std::mem::size_of::<$params_name>() {
-                                return Err(crate::Error::InvalidParameters);
+                                return Err(::txkit_core::Error::InvalidParameters);
                             }
 
                             unsafe {
                                 &*(buf.as_ptr() as *const $params_name)
                             }
                         } else {
-                            return Err(crate::Error::InvalidParameters);
+                            return Err(::txkit_core::Error::InvalidParameters);
                         }
                     }
                     None => {
@@ -153,7 +154,7 @@ macro_rules! decl_method {
         #[cfg(test)]
         mod tests {
             use super::*;
-            use crate::image::{ImageDataType, ImageDim};
+            use ::txkit_core::image::{ImageDataType, ImageDim};
 
             #[test]
             fn debug_cpu() {
@@ -178,13 +179,13 @@ macro_rules! decl_method {
             }
         }
     } => {
-        use crate::context::Context;
-        use crate::image::prelude::*;
-        use crate::method::*;
+        use ::txkit_core::context::Context;
+        use ::txkit_core::image::prelude::*;
+        use ::txkit_core::method::*;
 
         #[derive(Default)]
         pub struct $name {
-            #[cfg(feature = "gpu-core")]
+            #[cfg(feature = "gpu")]
             gpu: Option<$gpu_name>,
         }
 
@@ -202,14 +203,14 @@ macro_rules! decl_method {
             }
         }
 
-        #[cfg(feature = "gpu-core")]
+        #[cfg(feature = "gpu")]
         struct $gpu_name {
             program: tinygl::wrappers::GlHandle<$gpu_program>,
         }
 
-        #[cfg(feature = "gpu-core")]
+        #[cfg(feature = "gpu")]
         impl $gpu_name {
-            fn new(gl: &std::rc::Rc<tinygl::Context>) -> crate::Result<Self> {
+            fn new(gl: &std::rc::Rc<tinygl::Context>) -> ::txkit_core::Result<Self> {
                 Ok(Self {
                     program: tinygl::wrappers::GlHandle::new(gl, <$gpu_program>::build(gl)?)
                 })
@@ -221,18 +222,18 @@ macro_rules! decl_method {
                 Self::default()
             }
 
-            #[cfg(feature = "gpu-core")]
-            fn prepare_gpu($gl: &tinygl::Context, $prepare_program: &$gpu_program, $prepare_params: &$params_name) -> crate::Result<()> {
+            #[cfg(feature = "gpu")]
+            fn prepare_gpu($gl: &tinygl::Context, $prepare_program: &$gpu_program, $prepare_params: &$params_name) -> ::txkit_core::Result<()> {
                 $prepare_code
             }
 
-            #[cfg(feature = "gpu-core")]
+            #[cfg(feature = "gpu")]
             fn compute_gpu(
                 &mut self,
-                gpu_context: &mut crate::context::GpuContext,
+                gpu_context: &mut ::txkit_core::context::GpuContext,
                 tgt: &mut Image,
                 params: &$params_name,
-            ) -> crate::Result<()> {
+            ) -> ::txkit_core::Result<()> {
                 use tinygl::prelude::*;
 
                 // Initialize GPU program
@@ -244,7 +245,7 @@ macro_rules! decl_method {
                 let gpu = self.gpu.as_ref().unwrap();
 
                 tgt.as_gpu_image_mut()
-                    .ok_or(crate::Error::FormatNotSupported)
+                    .ok_or(::txkit_core::Error::FormatNotSupported)
                     .and_then(|tgt| {
                         gpu_context.render_to_framebuffer(tgt, |gl, layer| {
                             unsafe { gpu.program.use_program(gl); }
@@ -262,20 +263,20 @@ macro_rules! decl_method {
                     })
             }
 
-            #[cfg(not(feature = "gpu-core"))]
+            #[cfg(not(feature = "gpu"))]
             fn compute_gpu(
                 &mut self,
-                _gpu_context: &mut crate::context::GpuContext,
+                _gpu_context: &mut ::txkit_core::context::GpuContext,
                 _tgt: &mut Image,
                 _params: &$params_name,
-            ) -> crate::Result<()> {
-                Err(crate::Error::ContextNotSupported)
+            ) -> ::txkit_core::Result<()> {
+                Err(::txkit_core::Error::ContextNotSupported)
             }
         }
 
         #[allow(unused_variables)]
         impl Method for $name {
-            fn compute(&mut self, ctx: &mut Context, tgt: &mut Image, params: Option<&dyn std::any::Any>) -> crate::Result<()> {
+            fn compute(&mut self, ctx: &mut Context, tgt: &mut Image, params: Option<&dyn std::any::Any>) -> ::txkit_core::Result<()> {
                 let default_params;
                 let params: &$params_name = match params {
                     Some(params) => {
@@ -283,14 +284,14 @@ macro_rules! decl_method {
                             p
                         } else if let Some(buf) = params.downcast_ref::<&[u8]>() {
                             if buf.len() != std::mem::size_of::<$params_name>() {
-                                return Err(crate::Error::InvalidParameters);
+                                return Err(::txkit_core::Error::InvalidParameters);
                             }
 
                             unsafe {
                                 &*(buf.as_ptr() as *const $params_name)
                             }
                         } else {
-                            return Err(crate::Error::InvalidParameters);
+                            return Err(::txkit_core::Error::InvalidParameters);
                         }
                     }
                     None => {
@@ -301,7 +302,7 @@ macro_rules! decl_method {
 
                 match ctx {
                     Context::Gpu(gpu_context) => self.compute_gpu(gpu_context, tgt, &params),
-                    Context::Cpu(cpu_context) => Err(crate::Error::ContextNotSupported),
+                    Context::Cpu(cpu_context) => Err(::txkit_core::Error::ContextNotSupported),
                 }
             }
         }

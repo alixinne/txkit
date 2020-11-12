@@ -56,65 +56,57 @@ fn wrap_shaders() -> anyhow::Result<()> {
 
     wrapped.push(&quad_vert);
 
-    if cfg!(feature = "method-debug") {
-        compile_method!(
-            debug_frag,
-            debug_prog,
-            "shaders/debug.frag",
-            "debug",
-            prefer_spirv,
-            wrapped,
-            set,
-            compiler,
-            reflector,
-            quad_vert
-        );
-    }
+    compile_method!(
+        debug_frag,
+        debug_prog,
+        "shaders/debug.frag",
+        "debug",
+        prefer_spirv,
+        wrapped,
+        set,
+        compiler,
+        reflector,
+        quad_vert
+    );
 
-    if cfg!(feature = "method-white-noise") {
-        compile_method!(
-            white_noise_frag,
-            white_noise_prog,
-            "shaders/white_noise.frag",
-            "white_noise",
-            prefer_spirv,
-            wrapped,
-            set,
-            compiler,
-            reflector,
-            quad_vert
-        );
-    }
+    compile_method!(
+        white_noise_frag,
+        white_noise_prog,
+        "shaders/white_noise.frag",
+        "white_noise",
+        prefer_spirv,
+        wrapped,
+        set,
+        compiler,
+        reflector,
+        quad_vert
+    );
 
-    if cfg!(feature = "method-value-noise") {
-        compile_method!(
-            value_noise_frag,
-            value_noise_prog,
-            "shaders/value_noise.frag",
-            "value_noise",
-            prefer_spirv,
-            wrapped,
-            set,
-            compiler,
-            reflector,
-            quad_vert
-        );
-    }
+    compile_method!(
+        value_noise_frag,
+        value_noise_prog,
+        "shaders/value_noise.frag",
+        "value_noise",
+        prefer_spirv,
+        wrapped,
+        set,
+        compiler,
+        reflector,
+        quad_vert
+    );
 
-    if cfg!(feature = "method-gradient-noise") {
-        compile_method!(
-            gradient_noise_frag,
-            gradient_noise_prog,
-            "shaders/gradient_noise.frag",
-            "gradient_noise",
-            prefer_spirv,
-            wrapped,
-            set,
-            compiler,
-            reflector,
-            quad_vert
-        );
-    }
+    compile_method!(
+        gradient_noise_frag,
+        gradient_noise_prog,
+        "shaders/gradient_noise.frag",
+        "gradient_noise",
+        prefer_spirv,
+        wrapped,
+        set,
+        compiler,
+        reflector,
+        quad_vert
+    );
 
     let global_set = compiler.wrap_uniforms(&set[..], "global").unwrap();
     wrapped.push(&global_set);
