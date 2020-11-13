@@ -2,7 +2,8 @@
 members = [
   "txkit-builtin",
   "txkit-cli",
-  "txkit-core"
+  "txkit-core",
+  "txkit-tests"
 ]
 
 [patch.crates-io]

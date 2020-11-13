@@ -26,7 +26,10 @@ int main(int argc, char *argv[]) {
 	TxKit_Image *img_cpu = txkit_image_new_cpu(dim, TxKit_ImageDataType_Float32);
 	TXKIT_CHECKPTR(img_cpu);
 
-	TxKit_Method *mth = txkit_method_new("debug");
+	TxKit_Registry *reg = txkit_registry_new_builtin();
+	TXKIT_CHECKPTR(reg);
+
+	TxKit_Method *mth = txkit_method_new(reg, "debug");
 	TXKIT_CHECKPTR(mth);
 
 	TxKit_DebugParams params = {.alpha_value = 0.5f};
@@ -74,6 +77,7 @@ int main(int argc, char *argv[]) {
 	txkit_image_unmap_read(read_map);
 
 	txkit_method_destroy(mth);
+	txkit_registry_destroy(reg);
 	txkit_image_destroy(img_cpu);
 	txkit_image_destroy(img);
 	txkit_context_destroy(ctx_cpu);

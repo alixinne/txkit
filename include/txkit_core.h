@@ -309,6 +309,11 @@ TXKIT_API void txkit_method_destroy(TxKit_Method *method);
  */
 TXKIT_API TxKit_Method *txkit_method_new(const TxKit_Registry *registry, const char *method_name);
 
+/**
+ * Destroy a registry
+ */
+TXKIT_API void txkit_registry_destroy(TxKit_Registry *registry);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif // __cplusplus
