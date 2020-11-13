@@ -21,6 +21,7 @@ prefix = "TxKit_"
 
 [export.rename]
 MethodBox = "Method"
+RegistryBox = "Registry"
 MappedImageDataReadBox = "MappedImageDataRead"
 MappedImageDataWriteBox = "MappedImageDataWrite"
 

@@ -48,6 +48,8 @@ typedef struct TxKit_MappedImageDataWrite TxKit_MappedImageDataWrite;
  */
 typedef struct TxKit_Method TxKit_Method;
 
+typedef struct TxKit_Registry TxKit_Registry;
+
 typedef struct {
     uintptr_t width;
     uintptr_t height;
@@ -297,6 +299,7 @@ TXKIT_API void txkit_method_destroy(TxKit_Method *method);
  *
  * # Parameters
  *
+ * * `registry`: registry of methods to build from
  * * `method_name`: name of the method to create
  *
  * # Returns
@@ -304,7 +307,7 @@ TXKIT_API void txkit_method_destroy(TxKit_Method *method);
  * Null pointer if an error occurred creating the method, otherwise pointer to the allocated
  * method.
  */
-TXKIT_API TxKit_Method *txkit_method_new(const char *method_name);
+TXKIT_API TxKit_Method *txkit_method_new(const TxKit_Registry *registry, const char *method_name);
 
 #ifdef __cplusplus
 } // extern "C"

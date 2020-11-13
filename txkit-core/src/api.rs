@@ -42,6 +42,22 @@ pub fn set_last_error(e: impl std::fmt::Display) {
     STATE.lock().unwrap().set_last_error(e);
 }
 
+pub fn wrap<T>(r: impl FnOnce() -> T) -> Option<T> {
+    match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| r())) {
+        Ok(result) => Some(result),
+        Err(error) => {
+            if let Some(message) = error.downcast_ref::<String>() {
+                set_last_error(message);
+            } else {
+                // For debugging, don't just ignore the error if we can't print it
+                panic!(error);
+            }
+
+            None
+        }
+    }
+}
+
 pub fn wrap_result<T, E: std::fmt::Display>(r: impl FnOnce() -> Result<T, E>) -> Option<T> {
     match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         r().map_err(|e| set_last_error(e))

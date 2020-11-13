@@ -5,9 +5,11 @@ use std::path::PathBuf;
 
 use argh::FromArgs;
 use color_eyre::eyre::Result;
-use strum_macros::EnumString;
 
-fn write_gpu_method_result(mut method: impl txkit_core::method::Method, args: &Args) -> Result<()> {
+fn write_gpu_method_result(
+    mut method: Box<dyn txkit_core::method::Method>,
+    args: &Args,
+) -> Result<()> {
     let width = args.size;
     let height = args.size;
 
@@ -42,7 +44,10 @@ fn write_gpu_method_result(mut method: impl txkit_core::method::Method, args: &A
     Ok(())
 }
 
-fn write_cpu_method_result(mut method: impl txkit_core::method::Method, args: &Args) -> Result<()> {
+fn write_cpu_method_result(
+    mut method: Box<dyn txkit_core::method::Method>,
+    args: &Args,
+) -> Result<()> {
     let width = args.size;
     let height = args.size;
 
@@ -76,21 +81,12 @@ fn write_cpu_method_result(mut method: impl txkit_core::method::Method, args: &A
     Ok(())
 }
 
-#[derive(Debug, Clone, Copy, EnumString)]
-#[strum(serialize_all = "snake_case")]
-enum Method {
-    Debug,
-    WhiteNoise,
-    ValueNoise,
-    GradientNoise,
-}
-
 #[derive(Debug, FromArgs)]
 /// txkit command-line interface
 struct Args {
     #[argh(option, short = 'm')]
     /// built-in method to render
-    method: Method,
+    method: String,
 
     #[argh(option, short = 'o')]
     /// output path
@@ -113,32 +109,21 @@ fn main() -> Result<()> {
         .try_init()?;
 
     let args: Args = argh::from_env();
+    let registry = txkit_builtin::methods::new_registry();
 
     if args.cpu {
-        match args.method {
-            Method::Debug => write_cpu_method_result(txkit_builtin::methods::Debug::new(), &args),
-            Method::WhiteNoise => {
-                write_cpu_method_result(txkit_builtin::methods::WhiteNoise::new(), &args)
-            }
-            Method::ValueNoise => {
-                write_cpu_method_result(txkit_builtin::methods::ValueNoise::new(), &args)
-            }
-            Method::GradientNoise => {
-                write_cpu_method_result(txkit_builtin::methods::GradientNoise::new(), &args)
-            }
-        }
+        write_cpu_method_result(
+            registry
+                .build(args.method.as_str())
+                .ok_or(txkit_core::Error::MethodNotFound)?,
+            &args,
+        )
     } else {
-        match args.method {
-            Method::Debug => write_gpu_method_result(txkit_builtin::methods::Debug::new(), &args),
-            Method::WhiteNoise => {
-                write_gpu_method_result(txkit_builtin::methods::WhiteNoise::new(), &args)
-            }
-            Method::ValueNoise => {
-                write_gpu_method_result(txkit_builtin::methods::ValueNoise::new(), &args)
-            }
-            Method::GradientNoise => {
-                write_gpu_method_result(txkit_builtin::methods::GradientNoise::new(), &args)
-            }
-        }
+        write_gpu_method_result(
+            registry
+                .build(args.method.as_str())
+                .ok_or(txkit_core::Error::MethodNotFound)?,
+            &args,
+        )
     }
 }
