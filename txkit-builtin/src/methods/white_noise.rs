@@ -25,12 +25,9 @@ impl WhiteNoiseGpu {
 }
 
 #[cfg(feature = "gpu")]
-impl txkit_core::method::TextureMethod for WhiteNoiseGpu {
-    type Params = WhiteNoiseParams;
-}
-
-#[cfg(feature = "gpu")]
 impl txkit_core::method::GpuMethod for WhiteNoiseGpu {
+    type Params = WhiteNoiseParams;
+
     fn compute_gpu(
         &mut self,
         ctx: &mut txkit_core::context::GpuContext,
@@ -83,12 +80,10 @@ impl WhiteNoise {
     }
 }
 
-impl txkit_core::method::TextureMethod for WhiteNoise {
-    type Params = WhiteNoiseParams;
-}
-
 #[cfg(feature = "cpu")]
 impl txkit_core::method::CpuMethod for WhiteNoise {
+    type Params = WhiteNoiseParams;
+
     fn compute_cpu(
         &mut self,
         ctx: &mut txkit_core::context::CpuContext,

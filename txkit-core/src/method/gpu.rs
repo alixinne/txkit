@@ -4,10 +4,11 @@ use crate::context::GpuContext;
 use crate::image::gpu::GpuImageData;
 use crate::Result;
 
-use super::TextureMethod;
-
 /// Represents a GPU procedural texturing method
-pub trait GpuMethod: TextureMethod {
+pub trait GpuMethod {
+    /// Texture generation parameters
+    type Params;
+
     /// Compute one frame of this method
     ///
     /// # Parameters

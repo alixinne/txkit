@@ -24,12 +24,9 @@ impl ValueNoiseGpu {
 }
 
 #[cfg(feature = "gpu")]
-impl txkit_core::method::TextureMethod for ValueNoiseGpu {
-    type Params = ValueNoiseParams;
-}
-
-#[cfg(feature = "gpu")]
 impl txkit_core::method::GpuMethod for ValueNoiseGpu {
+    type Params = ValueNoiseParams;
+
     fn compute_gpu(
         &mut self,
         ctx: &mut txkit_core::context::GpuContext,

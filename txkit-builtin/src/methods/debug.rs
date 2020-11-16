@@ -32,12 +32,9 @@ impl DebugGpu {
 }
 
 #[cfg(feature = "gpu")]
-impl txkit_core::method::TextureMethod for DebugGpu {
-    type Params = DebugParams;
-}
-
-#[cfg(feature = "gpu")]
 impl txkit_core::method::GpuMethod for DebugGpu {
+    type Params = DebugParams;
+
     fn compute_gpu(
         &mut self,
         ctx: &mut txkit_core::context::GpuContext,
@@ -91,12 +88,10 @@ impl Debug {
     }
 }
 
-impl txkit_core::method::TextureMethod for Debug {
-    type Params = DebugParams;
-}
-
 #[cfg(feature = "cpu")]
 impl txkit_core::method::CpuMethod for Debug {
+    type Params = DebugParams;
+
     fn compute_cpu(
         &mut self,
         ctx: &mut txkit_core::context::CpuContext,

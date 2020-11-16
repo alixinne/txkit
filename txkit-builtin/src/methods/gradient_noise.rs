@@ -24,12 +24,9 @@ impl GradientNoiseGpu {
 }
 
 #[cfg(feature = "gpu")]
-impl txkit_core::method::TextureMethod for GradientNoiseGpu {
-    type Params = GradientNoiseParams;
-}
-
-#[cfg(feature = "gpu")]
 impl txkit_core::method::GpuMethod for GradientNoiseGpu {
+    type Params = GradientNoiseParams;
+
     fn compute_gpu(
         &mut self,
         ctx: &mut txkit_core::context::GpuContext,

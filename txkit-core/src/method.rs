@@ -43,11 +43,6 @@ pub fn downcast_params<'u, U: Default + 'static>(
     })
 }
 
-/// Base trait for all methods
-pub trait TextureMethod {
-    type Params;
-}
-
 /// Generic interface to a procedural texturing method
 pub trait Method {
     fn compute(

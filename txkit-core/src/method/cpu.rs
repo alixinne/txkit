@@ -4,10 +4,11 @@ use crate::context::CpuContext;
 use crate::image::Image;
 use crate::Result;
 
-use super::TextureMethod;
-
 /// Represents a CPU procedural texturing method
-pub trait CpuMethod: TextureMethod {
+pub trait CpuMethod {
+    /// Texture generation parameters
+    type Params;
+
     /// Compute one frame of this method
     ///
     /// # Parameters
