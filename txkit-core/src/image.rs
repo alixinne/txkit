@@ -1,6 +1,6 @@
 mod cpu;
 #[cfg(feature = "gpu-core")]
-pub(crate) mod gpu;
+pub mod gpu;
 
 mod image_data;
 pub use image_data::*;
