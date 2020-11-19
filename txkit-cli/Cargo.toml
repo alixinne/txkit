@@ -5,11 +5,17 @@ authors = ["Vincent Tavernier <vince.tavernier@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-txkit-builtin = "=0.1.0"
-txkit-core = "=0.1.0"
+txkit-builtin = { version = "=0.1.0", default-features = false }
+txkit-core = { version = "=0.1.0", default-features = false }
 
 argh = "0.1.4"
 color-eyre = "0.5.7"
 image = "0.23.11"
 env_logger = "0.8.1"
 log = "0.4.11"
+
+[features]
+default = ["cpu", "gpu"]
+cpu = ["txkit-builtin/cpu", "txkit-core/cpu"]
+gpu = ["txkit-builtin/gpu", "txkit-core/gpu"]
+gpu45 = ["txkit-builtin/gpu45", "txkit-core/gpu45"]

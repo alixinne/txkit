@@ -1,0 +1,22 @@
+[package]
+name = "txkit-impl"
+version = "0.1.0"
+authors = ["Vincent Tavernier <vince.tavernier@gmail.com>"]
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+anyhow = "1"
+syn = "1"
+quote = "1"
+proc-macro2 = "1"
+tinygl-compiler = { git = "https://github.com/vtavernier/tinygl.git", optional = true, default-features = false, features = ["codegen"] }
+heck = "0.3.1"
+
+[features]
+default = ["cpu", "gpu"]
+cpu = []
+gpu = ["tinygl-compiler/backend-shaderc"]
+gpu45 = ["tinygl-compiler/backend-shaderc"]

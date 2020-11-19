@@ -9,18 +9,14 @@ path = "src/lib.rs"
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
-txkit-core = "=0.1.0"
+txkit-core = { version = "=0.1.0", default-features = false }
+txkit-impl = { version = "=0.1.0", default-features = false }
 
 ndarray = "0.13.0"
 tinygl = { git = "https://github.com/vtavernier/tinygl.git", optional = true, default-features = false }
 
-[build-dependencies]
-anyhow = "1.0"
-tinygl-compiler = { git = "https://github.com/vtavernier/tinygl.git", optional = true, features = ["backend-shaderc", "codegen"] }
-
 [features]
 default = ["cpu", "gpu"]
-cpu = ["txkit-core/cpu"]
-gpu = ["txkit-core/gpu", "wrap-shaders", "tinygl"]
-gpu45 = ["txkit-core/gpu45", "wrap-shaders", "tinygl"]
-wrap-shaders = ["tinygl-compiler"]
+cpu = ["txkit-core/cpu", "txkit-impl/cpu"]
+gpu = ["txkit-core/gpu", "txkit-impl/gpu", "tinygl"]
+gpu45 = ["txkit-core/gpu45", "txkit-impl/gpu45", "tinygl"]

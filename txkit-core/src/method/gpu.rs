@@ -23,3 +23,12 @@ pub trait GpuMethod {
         params: &Self::Params,
     ) -> Result<()>;
 }
+
+/// Represents a set of parameters for a given method
+///
+/// # Type parameters
+///
+/// * `P`: type of the program to set the values on
+pub trait GpuMethodParams<P> {
+    fn apply(&self, gl: &tinygl::Context, p: &P);
+}
