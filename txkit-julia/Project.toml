@@ -1,0 +1,7 @@
+name = "TxKit"
+uuid = "eb7b8324-6403-43b1-aa6c-76ff61b02142"
+authors = ["Vincent Tavernier <vince.tavernier@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
