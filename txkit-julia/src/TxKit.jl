@@ -31,7 +31,7 @@ const Image = Ptr{Cvoid}
 const MappedImageDataRead = Ptr{Cvoid}
 const MappedImageDataWrite = Ptr{Cvoid}
 
-const Method = Ptr{Cvoid}
+const TextureMethod = Ptr{Cvoid}
 
 const Registry = Ptr{Cvoid}
 
@@ -65,9 +65,9 @@ txkit_image_sync(image::Image) = ccall((:txkit_image_sync, libtxkit_core), Int32
 txkit_image_unmap_read(read_map::MappedImageDataRead) = ccall((:txkit_image_unmap_read, libtxkit_core), Cvoid, (MappedImageDataRead,), read_map)
 txkit_image_unmap_write(write_map::MappedImageDataRead) = ccall((:txkit_image_unmap_write, libtxkit_core), Cvoid, (MappedImageDataWrite,), write_map)
 
-txkit_method_compute(ctx::Context, method::Method, tgt::Image, params::Ptr{Cvoid}, params_size::UInt) = ccall((:txkit_method_compute, libtxkit_core), Int32, (Context, Method, Image, Ptr{Cvoid}, UInt), ctx, method, tgt, params, params_size)
-txkit_method_destroy(method::Method) = ccall((:txkit_method_destroy, libtxkit_core), Cvoid, (Method,), method)
-txkit_method_new(registry::Registry, method_name::AbstractString) = ccall((:txkit_method_new, libtxkit_core), Method, (Registry, Cstring), registry, method_name)
+txkit_method_compute(ctx::Context, method::TextureMethod, tgt::Image, params::Ptr{Cvoid}, params_size::UInt) = ccall((:txkit_method_compute, libtxkit_core), Int32, (Context, TextureMethod, Image, Ptr{Cvoid}, UInt), ctx, method, tgt, params, params_size)
+txkit_method_destroy(method::TextureMethod) = ccall((:txkit_method_destroy, libtxkit_core), Cvoid, (TextureMethod,), method)
+txkit_method_new(registry::Registry, method_name::AbstractString) = ccall((:txkit_method_new, libtxkit_core), TextureMethod, (Registry, Cstring), registry, method_name)
 
 txkit_registry_destroy(registry::Registry) = ccall((:txkit_registry_destroy, libtxkit_core), Cvoid, (Registry,), registry)
 
@@ -91,7 +91,234 @@ txkit_registry_new_builtin() = ccall((:txkit_registry_new_builtin, libtxkit_buil
 
 end # module
 
-export Api
+import .Api.GradientNoiseParams, .Api.ValueNoiseParams, .Api.WhiteNoiseParams, .Api.DebugParams
+export GradientNoiseParams, ValueNoiseParams, WhiteNoiseParams, DebugParams
+
+struct Context
+    context::Api.Context
+end
+
+function new_context(type::Symbol)
+    ptr = if type == :cpu
+        Api.txkit_context_new_cpu()
+    elseif type == :gpu
+        Api.txkit_context_new_gpu()
+    else
+        error("unknown context type: " * string(type))
+    end
+
+    if ptr == C_NULL
+        error("error creating context: " * unsafe_string(Api.txkit_get_last_error()))
+    end
+
+    Context(ptr)
+end
+
+function new_context(f::Function, type::Symbol)
+    ctx = new_context(type)
+
+    try
+        f(ctx)
+    finally
+        destroy(ctx)
+    end
+end
+
+function destroy(context::Context)
+    Api.txkit_context_destroy(context.context)
+end
+
+import .Api.ImageDim, .Api.ImageDataType
+
+struct Image{E}
+    image::Api.Image
+end
+
+function new_image(type::Symbol, dim::ImageDim, etype::Union{Type{UInt8}, Type{Float32}}, dims::Integer, context::Context)
+    element_type = if etype == UInt8
+        Api.ImageDataType_UInt8
+    elseif etype == Float32
+        Api.ImageDataType_Float32
+    else
+        error("unknown element type: " * string(etype))
+    end
+
+    ptr = if type == :cpu
+        Api.txkit_image_new_cpu(dim, element_type)
+    elseif type == :gpu
+        if dims == 1
+            Api.txkit_image_new_gpu_1d(dim, element_type, context.context)
+        elseif dims == 2
+            Api.txkit_image_new_gpu_2d(dim, element_type, context.context)
+        elseif dims == 3
+            Api.txkit_image_new_gpu_3d(dim, element_type, context.context)
+        else
+            error("unknown number of dims for GPU image: " * string(dims))
+        end
+    else
+        error("unknown type of image: " * string(type))
+    end
+
+    if ptr == C_NULL
+        error("error creating image: " * unsafe_string(Api.txkit_get_last_error()))
+    end
+
+    Image{etype}(ptr)
+end
+
+function new_image(f::Function, type::Symbol, dim::ImageDim, etype::Union{Type{UInt8}, Type{Float32}}, dims::Integer, context::Context)
+    img = new_image(type, dim, etype, dims, context)
+
+    try
+        f(img)
+    finally
+        destroy(img)
+    end
+end
+
+function destroy(image::Image)
+    Api.txkit_image_destroy(image.image)
+end
+
+function sync(image::Image)
+    if Api.txkit_image_sync(image.image) != 0
+        error("error syncing image: " * unsafe_string(Api.txkit_get_last_error()))
+    end
+
+    nothing
+end
+
+function map_read(f::Function, image::Image{E}) where {E}
+    map = Api.txkit_image_map_read(image.image)
+
+    if map == C_NULL
+        error("error mapping image for read: " * unsafe_string(Api.txkit_get_last_error()))
+    end
+
+    try
+        map_read_data = if E == UInt8
+            Api.txkit_image_map_read_data_u8(map)
+        elseif E == Float32
+            Api.txkit_image_map_read_data_f32(map)
+        end
+
+        if map_read_data == C_NULL
+            error("error obtaining pointer to data for map: " * unsafe_string(Api.txkit_get_last_error()))
+        end
+
+        # Wrap the array returned by txkit
+        dim = Api.txkit_image_dim(image.image)
+        array = unsafe_wrap(Array{E}, map_read_data, (dim.channels, dim.width, dim.height, dim.depth))
+        array = permutedims(array, (4, 3, 2, 1))
+
+        # Call the user function
+        f(array)
+    finally
+        Api.txkit_image_unmap_read(map)
+    end
+end
+
+function map_write(f::Function, image::Image{E}) where {E}
+    map = Api.txkit_image_map_write(image.image)
+
+    if map == C_NULL
+        error("error mapping image for write: " * unsafe_string(Api.txkit_get_last_error()))
+    end
+
+    try
+        map_write_data = if E == UInt8
+            Api.txkit_image_map_write_data_u8(map)
+        elseif E == Float32
+            Api.txkit_image_map_write_data_f32(map)
+        end
+
+        if map_write_data == C_NULL
+            error("error obtaining pointer to data for map: " * unsafe_string(Api.txkit_get_last_error()))
+        end
+
+        # Wrap the array returned by txkit
+        dim = Api.txkit_image_dim(image.image)
+        array = unsafe_wrap(Array{E}, map_write_data, (dim.channels, dim.width, dim.height, dim.depth))
+        array = permutedims(array, (4, 3, 2, 1))
+
+        # Call the user function
+        f(array)
+    finally
+        Api.txkit_image_unmap_write(map)
+    end
+end
+
+struct Registry
+    registry::Api.Registry
+end
+
+function new_registry()
+    ptr = Api.txkit_registry_new_builtin()
+
+    if ptr == C_NULL
+        error("error creating registry: " * unsafe_string(Api.txkit_get_last_error()))
+    end
+
+    Registry(ptr)
+end
+
+function new_registry(f::Function)
+    registry = new_registry()
+
+    try
+        f(registry)
+    finally
+        destroy(registry)
+    end
+end
+
+function destroy(registry::Registry)
+    Api.txkit_registry_destroy(registry.registry)
+end
+
+struct TextureMethod
+    method::Api.TextureMethod
+end
+
+function new_method(registry::Registry, name::AbstractString)
+    ptr = Api.txkit_method_new(registry.registry, name)
+
+    if ptr == C_NULL
+        error("error creating method: " * unsafe_string(Api.txkit_get_last_error()))
+    end
+
+    TextureMethod(ptr)
+end
+
+function new_method(f::Function, registry::Registry, name::AbstractString)
+    mth = new_method(registry, name)
+
+    try
+        f(mth)
+    finally
+        destroy(mth)
+    end
+end
+
+function destroy(method::TextureMethod)
+    Api.txkit_image_destroy(method.method)
+end
+
+function compute(context::Context, method::TextureMethod, target::Image, params::Union{Nothing, Any}) where {P}
+    result = if params == nothing
+        Api.txkit_method_compute(context.context, method.method, target.image, C_NULL, 0)
+    else
+        Api.txkit_method_compute(context.context, method.method, target.image, pointer_from_objref(params), UInt64(sizeof(params[])))
+    end
+
+    if result != 0
+        error("error computing result: " * unsafe_string(Api.txkit_get_last_error()))
+    end
+
+    nothing
+end
+
+export Api, Context, new_context, ImageDim, Image, new_image, destroy, sync, map_read, map_write, TextureMethod, new_method, compute, Registry, new_registry
 
 end # module
 
