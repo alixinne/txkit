@@ -1,7 +1,9 @@
+#define M_PI 3.14159265358979323846
+
 layout(location = 0) uniform uvec3 iResolution;
 
 // Simple coordinate hash
-uint hash(in uint x) {
+uint hash(uint x) {
     x = ((x >> 16) ^ x) * 0x45d9f3bu;
     x = ((x >> 16) ^ x) * 0x45d9f3bu;
     x = (x >> 16) ^ x;
@@ -17,11 +19,11 @@ uint morton(uint x, uint y) {
 }
 
 // vec2 version
-uint hash(in uvec2 x) { return hash(morton(x.x, x.y)); }
+uint hash(uvec2 x, uint seed) { return hash(seed + morton(x.x, x.y)); }
 
 // vec2 -> vec2 version
-uvec2 hash2(in uvec2 x) {
-    return uvec2(hash(2 * x.x), hash(2 * x.y + 1));
+uvec2 hash2(uvec2 x, uint seed) {
+    return uvec2(hash(seed + 2 * x.x), hash(seed + 2 * x.y + 1));
 }
 
 // Converts a vector of unsigned ints to floats in [0,1]

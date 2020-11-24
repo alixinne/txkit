@@ -4,7 +4,10 @@ use txkit_impl::{Method, ParamsFor};
 #[derive(Default, Clone, Copy, PartialEq, ParamsFor)]
 #[repr(C)]
 #[txkit(program = "WhiteNoiseProgram")]
-pub struct WhiteNoiseParams {}
+pub struct WhiteNoiseParams {
+    /// pseudo-random seed
+    pub global_seed: u32,
+}
 
 #[derive(Default, Method)]
 #[txkit(
@@ -29,9 +32,11 @@ impl WhiteNoise {
     fn compute_idx(
         (k, j, i, l): (usize, usize, usize, usize),
         sz: ImageDim,
-        _params: &WhiteNoiseParams,
+        params: &WhiteNoiseParams,
     ) -> f32 {
-        let mut x = ((i + j * sz.width + k * sz.width * sz.height) * sz.channels + l) as u32;
+        let mut x = ((i + j * sz.width + k * sz.width * sz.height) * sz.channels
+            + l
+            + params.global_seed as usize) as u32;
 
         // Hash
         x = ((x >> 16) ^ x).wrapping_mul(0x45d9f3bu32);

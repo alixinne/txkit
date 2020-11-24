@@ -3,7 +3,10 @@ use txkit_impl::{Method, ParamsFor};
 #[derive(Default, Clone, Copy, PartialEq, ParamsFor)]
 #[repr(C)]
 #[txkit(program = "ValueNoiseProgram")]
-pub struct ValueNoiseParams {}
+pub struct ValueNoiseParams {
+    /// pseudo-random seed
+    pub global_seed: u32,
+}
 
 #[derive(Default, Method)]
 #[txkit(

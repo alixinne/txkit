@@ -6,15 +6,24 @@
 typedef struct TxKit_Registry TxKit_Registry;
 
 typedef struct {
-
+    /**
+     * pseudo-random seed
+     */
+    uint32_t global_seed;
 } TxKit_GradientNoiseParams;
 
 typedef struct {
-
+    /**
+     * pseudo-random seed
+     */
+    uint32_t global_seed;
 } TxKit_ValueNoiseParams;
 
 typedef struct {
-
+    /**
+     * pseudo-random seed
+     */
+    uint32_t global_seed;
 } TxKit_WhiteNoiseParams;
 
 typedef struct {

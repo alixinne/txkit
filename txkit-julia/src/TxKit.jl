@@ -72,12 +72,15 @@ txkit_method_new(registry::Registry, method_name::AbstractString) = ccall((:txki
 txkit_registry_destroy(registry::Registry) = ccall((:txkit_registry_destroy, libtxkit_core), Cvoid, (Registry,), registry)
 
 struct GradientNoiseParams
+    global_seed::UInt32
 end
 
 struct ValueNoiseParams
+    global_seed::UInt32
 end
 
 struct WhiteNoiseParams
+    global_seed::UInt32
 end
 
 struct DebugParams
