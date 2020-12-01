@@ -1,3 +1,6 @@
+#ifndef _SHARED_GLSL_
+#define _SHARED_GLSL_
+
 #define M_PI 3.14159265358979323846
 
 layout(location = 0) uniform uvec3 iResolution;
@@ -43,3 +46,5 @@ float tofloat11(uint u) { return 2. * tofloat(u) - 1.; }
 vec2 tofloat11(uvec2 u) { return 2. * tofloat(u) - 1.; }
 
 float to01(float x) { return .5 * x + .5; }
+
+#endif /* _SHARED_GLSL_ */

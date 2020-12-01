@@ -5,6 +5,22 @@
 
 typedef struct TxKit_Registry TxKit_Registry;
 
+/**
+ * A 2-dimensional vector.
+ *
+ * This type is marked as `#[repr(C)]`.
+ */
+typedef struct {
+    /**
+     * The x component of the vector.
+     */
+    float x;
+    /**
+     * The y component of the vector.
+     */
+    float y;
+} TxKit_Vector2_f32;
+
 typedef struct {
     /**
      * pseudo-random seed
@@ -14,6 +30,14 @@ typedef struct {
      * lattice scale (size in pixels)
      */
     float scale;
+    /**
+     * stats mode (0: normal, 1: process, 2: lookat)
+     */
+    int32_t stats_mode;
+    /**
+     * look-at parameter (if stats_mode == lookat) in [0, 1]^2
+     */
+    TxKit_Vector2_f32 stats_look_at;
 } TxKit_GradientNoiseParams;
 
 typedef struct {
@@ -25,6 +49,14 @@ typedef struct {
      * lattice scale (size in pixels)
      */
     float scale;
+    /**
+     * stats mode (0: normal, 1: process, 2: lookat)
+     */
+    int32_t stats_mode;
+    /**
+     * look-at parameter (if stats_mode == lookat) in [0, 1]^2
+     */
+    TxKit_Vector2_f32 stats_look_at;
 } TxKit_ValueNoiseParams;
 
 typedef struct {

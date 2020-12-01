@@ -13,6 +13,7 @@ txkit-core = { version = "=0.1.0", default-features = false }
 txkit-impl = { version = "=0.1.0", default-features = false }
 
 ndarray = "0.13.0"
+cgmath = "0.17"
 tinygl = { git = "https://github.com/vtavernier/tinygl.git", optional = true, default-features = false }
 
 [features]

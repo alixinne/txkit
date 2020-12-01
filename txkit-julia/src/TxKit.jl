@@ -71,14 +71,29 @@ txkit_method_new(registry::Registry, method_name::AbstractString) = ccall((:txki
 
 txkit_registry_destroy(registry::Registry) = ccall((:txkit_registry_destroy, libtxkit_core), Cvoid, (Registry,), registry)
 
+const StatsMode = Int32
+
+const StatsMode_Normal = StatsMode(0)
+const StatsMode_Process = StatsMode(1)
+const StatsMode_LookAt = StatsMode(2)
+
+struct Vector2_f32
+    x::Float32
+    y::Float32
+end
+
 struct GradientNoiseParams
     global_seed::UInt32
     scale::Float32
+    stats_mode::StatsMode
+    stats_look_at::Vector2_f32
 end
 
 struct ValueNoiseParams
     global_seed::UInt32
     scale::Float32
+    stats_mode::StatsMode
+    stats_look_at::Vector2_f32
 end
 
 struct WhiteNoiseParams
@@ -93,8 +108,10 @@ txkit_registry_new_builtin() = ccall((:txkit_registry_new_builtin, libtxkit_buil
 
 end # module
 
-import .Api.GradientNoiseParams, .Api.ValueNoiseParams, .Api.WhiteNoiseParams, .Api.DebugParams
-export GradientNoiseParams, ValueNoiseParams, WhiteNoiseParams, DebugParams
+import .Api.Vector2_f32, .Api.StatsMode, .Api.StatsMode_Normal, .Api.StatsMode_Process, .Api.StatsMode_LookAt,
+       .Api.GradientNoiseParams, .Api.ValueNoiseParams, .Api.WhiteNoiseParams, .Api.DebugParams
+export Vector2_f32, StatsMode_Normal, StatsMode_Process, StatsMode_LookAt, GradientNoiseParams, ValueNoiseParams,
+       WhiteNoiseParams, DebugParams, StatsMode
 
 struct Context
     context::Api.Context
