@@ -10,6 +10,10 @@ typedef struct {
      * pseudo-random seed
      */
     uint32_t global_seed;
+    /**
+     * lattice scale (size in pixels)
+     */
+    float scale;
 } TxKit_GradientNoiseParams;
 
 typedef struct {
@@ -17,6 +21,10 @@ typedef struct {
      * pseudo-random seed
      */
     uint32_t global_seed;
+    /**
+     * lattice scale (size in pixels)
+     */
+    float scale;
 } TxKit_ValueNoiseParams;
 
 typedef struct {

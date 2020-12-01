@@ -1,11 +1,22 @@
 use txkit_impl::{Method, ParamsFor};
 
-#[derive(Default, Clone, Copy, PartialEq, ParamsFor)]
+#[derive(Clone, Copy, PartialEq, ParamsFor)]
 #[repr(C)]
 #[txkit(program = "ValueNoiseProgram")]
 pub struct ValueNoiseParams {
     /// pseudo-random seed
     pub global_seed: u32,
+    /// lattice scale (size in pixels)
+    pub scale: f32,
+}
+
+impl Default for ValueNoiseParams {
+    fn default() -> Self {
+        Self {
+            global_seed: 0,
+            scale: 32.,
+        }
+    }
 }
 
 #[derive(Default, Method)]

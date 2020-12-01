@@ -73,10 +73,12 @@ txkit_registry_destroy(registry::Registry) = ccall((:txkit_registry_destroy, lib
 
 struct GradientNoiseParams
     global_seed::UInt32
+    scale::Float32
 end
 
 struct ValueNoiseParams
     global_seed::UInt32
+    scale::Float32
 end
 
 struct WhiteNoiseParams

@@ -6,6 +6,8 @@ layout(location = 0) out vec4 o_FragColor;
 #include "noise.glsl"
 #include "shared.glsl"
 
+layout(location = 20) uniform float scale;
+
 float noisehash(uvec2 p, uint seed) { return tofloat(hash(p, seed)); }
 
 float noise(vec2 p, uint seed) {
@@ -21,4 +23,4 @@ float noise(vec2 p, uint seed) {
                u.y);
 }
 
-void main() { o_FragColor = vec4(vec3(noise(32. * uv.xy, globalSeed)), 1.0); }
+void main() { o_FragColor = vec4(vec3(noise(scale * uv.xy, globalSeed)), 1.0); }
