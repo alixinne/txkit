@@ -1,3 +1,5 @@
+/txkit-julia/deps/
+!/txkit-julia/deps/build.jl
 /target
 Cargo.lock
 
