@@ -86,7 +86,7 @@ pub fn wrap_result_code<E: std::fmt::Display>(r: impl FnOnce() -> Result<(), E>)
         r().map_err(|e| set_last_error(e))
             .map(|()| {
                 clear_last_error();
-                0
+                SUCCESS
             })
             .unwrap_or(1)
     })) {

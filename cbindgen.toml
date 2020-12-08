@@ -1,8 +1,10 @@
 language = "C"
 cpp_compat = true
 
-tab_width = 4
+include_guard = "_TXKIT_H_"
+includes = ["txkit_extra.h"]
 
+tab_width = 4
 documentation_style = "doxy"
 
 [defines]

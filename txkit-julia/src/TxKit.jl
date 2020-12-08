@@ -18,7 +18,7 @@ end
 
 # C function API
 module Api
-import ..libtxkit_core, ..libtxkit_builtin
+import ..libctxkit
 
 const ImageDataType = UInt32
 const ImageDataType_UInt8 = ImageDataType(0)
@@ -42,34 +42,34 @@ struct ImageDim
     channels::UInt
 end
 
-txkit_context_destroy(ctx::Context) = ccall((:txkit_context_destroy, libtxkit_core), Cvoid, (Context,), ctx)
-txkit_context_new_cpu() = ccall((:txkit_context_new_cpu, libtxkit_core), Context, ())
-txkit_context_new_gpu() = ccall((:txkit_context_new_gpu, libtxkit_core), Context, ())
+txkit_context_destroy(ctx::Context) = ccall((:txkit_context_destroy, libctxkit), Cvoid, (Context,), ctx)
+txkit_context_new_cpu() = ccall((:txkit_context_new_cpu, libctxkit), Context, ())
+txkit_context_new_gpu() = ccall((:txkit_context_new_gpu, libctxkit), Context, ())
 
-txkit_get_last_error() = ccall((:txkit_get_last_error, libtxkit_core), Ptr{Cchar}, ())
+txkit_get_last_error() = ccall((:txkit_get_last_error, libctxkit), Ptr{Cchar}, ())
 
-txkit_image_destroy(image::Image) = ccall((:txkit_image_destroy, libtxkit_core), Cvoid, (Image,), image)
-txkit_image_dim(image::Image) = ccall((:txkit_image_dim, libtxkit_core), ImageDim, (Image,), image)
-txkit_image_element_type(image::Image) = ccall((:txkit_image_element_type, libtxkit_core), ImageDataType, (Image,), image)
-txkit_image_map_read(image::Image) = ccall((:txkit_image_map_read, libtxkit_core), MappedImageDataRead, (Image,), image)
-txkit_image_map_read_data_f32(read_map::MappedImageDataRead) = ccall((:txkit_image_map_read_data_f32, libtxkit_core), Ptr{Cfloat}, (MappedImageDataRead,), read_map)
-txkit_image_map_read_data_u8(read_map::MappedImageDataRead) = ccall((:txkit_image_map_read_data_u8, libtxkit_core), Ptr{UInt8}, (MappedImageDataRead,), read_map)
-txkit_image_map_write(image::Image) = ccall((:txkit_image_map_write, libtxkit_core), MappedImageDataWrite, (Image,), image)
-txkit_image_map_write_data_f32(write_map::MappedImageDataWrite) = ccall((:txkit_image_map_write_data_f32, libtxkit_core), Ptr{Cfloat}, (MappedImageDataWrite,), write_map)
-txkit_image_map_write_data_u8(write_map::MappedImageDataWrite) = ccall((:txkit_image_map_write_data_u8, libtxkit_core), Ptr{UInt8}, (MappedImageDataWrite,), write_map)
-txkit_image_new_cpu(dim::ImageDim, element_type::ImageDataType) = ccall((:txkit_image_new_cpu, libtxkit_core), Image, (ImageDim, ImageDataType), dim, element_type)
-txkit_image_new_gpu_1d(dim::ImageDim, element_type::ImageDataType, context::Context) = ccall((:txkit_image_new_gpu_1d, libtxkit_core), Image, (ImageDim, ImageDataType, Context), dim, element_type, context)
-txkit_image_new_gpu_2d(dim::ImageDim, element_type::ImageDataType, context::Context) = ccall((:txkit_image_new_gpu_2d, libtxkit_core), Image, (ImageDim, ImageDataType, Context), dim, element_type, context)
-txkit_image_new_gpu_3d(dim::ImageDim, element_type::ImageDataType, context::Context) = ccall((:txkit_image_new_gpu_3d, libtxkit_core), Image, (ImageDim, ImageDataType, Context), dim, element_type, context)
-txkit_image_sync(image::Image) = ccall((:txkit_image_sync, libtxkit_core), Int32, (Image,), image)
-txkit_image_unmap_read(read_map::MappedImageDataRead) = ccall((:txkit_image_unmap_read, libtxkit_core), Cvoid, (MappedImageDataRead,), read_map)
-txkit_image_unmap_write(write_map::MappedImageDataRead) = ccall((:txkit_image_unmap_write, libtxkit_core), Cvoid, (MappedImageDataWrite,), write_map)
+txkit_image_destroy(image::Image) = ccall((:txkit_image_destroy, libctxkit), Cvoid, (Image,), image)
+txkit_image_dim(image::Image) = ccall((:txkit_image_dim, libctxkit), ImageDim, (Image,), image)
+txkit_image_element_type(image::Image) = ccall((:txkit_image_element_type, libctxkit), ImageDataType, (Image,), image)
+txkit_image_map_read(image::Image) = ccall((:txkit_image_map_read, libctxkit), MappedImageDataRead, (Image,), image)
+txkit_image_map_read_data_f32(read_map::MappedImageDataRead) = ccall((:txkit_image_map_read_data_f32, libctxkit), Ptr{Cfloat}, (MappedImageDataRead,), read_map)
+txkit_image_map_read_data_u8(read_map::MappedImageDataRead) = ccall((:txkit_image_map_read_data_u8, libctxkit), Ptr{UInt8}, (MappedImageDataRead,), read_map)
+txkit_image_map_write(image::Image) = ccall((:txkit_image_map_write, libctxkit), MappedImageDataWrite, (Image,), image)
+txkit_image_map_write_data_f32(write_map::MappedImageDataWrite) = ccall((:txkit_image_map_write_data_f32, libctxkit), Ptr{Cfloat}, (MappedImageDataWrite,), write_map)
+txkit_image_map_write_data_u8(write_map::MappedImageDataWrite) = ccall((:txkit_image_map_write_data_u8, libctxkit), Ptr{UInt8}, (MappedImageDataWrite,), write_map)
+txkit_image_new_cpu(dim::ImageDim, element_type::ImageDataType) = ccall((:txkit_image_new_cpu, libctxkit), Image, (ImageDim, ImageDataType), dim, element_type)
+txkit_image_new_gpu_1d(dim::ImageDim, element_type::ImageDataType, context::Context) = ccall((:txkit_image_new_gpu_1d, libctxkit), Image, (ImageDim, ImageDataType, Context), dim, element_type, context)
+txkit_image_new_gpu_2d(dim::ImageDim, element_type::ImageDataType, context::Context) = ccall((:txkit_image_new_gpu_2d, libctxkit), Image, (ImageDim, ImageDataType, Context), dim, element_type, context)
+txkit_image_new_gpu_3d(dim::ImageDim, element_type::ImageDataType, context::Context) = ccall((:txkit_image_new_gpu_3d, libctxkit), Image, (ImageDim, ImageDataType, Context), dim, element_type, context)
+txkit_image_sync(image::Image) = ccall((:txkit_image_sync, libctxkit), Int32, (Image,), image)
+txkit_image_unmap_read(read_map::MappedImageDataRead) = ccall((:txkit_image_unmap_read, libctxkit), Cvoid, (MappedImageDataRead,), read_map)
+txkit_image_unmap_write(write_map::MappedImageDataRead) = ccall((:txkit_image_unmap_write, libctxkit), Cvoid, (MappedImageDataWrite,), write_map)
 
-txkit_method_compute(ctx::Context, method::TextureMethod, tgt::Image, params::Ptr{Cvoid}, params_size::UInt) = ccall((:txkit_method_compute, libtxkit_core), Int32, (Context, TextureMethod, Image, Ptr{Cvoid}, UInt), ctx, method, tgt, params, params_size)
-txkit_method_destroy(method::TextureMethod) = ccall((:txkit_method_destroy, libtxkit_core), Cvoid, (TextureMethod,), method)
-txkit_method_new(registry::Registry, method_name::AbstractString) = ccall((:txkit_method_new, libtxkit_core), TextureMethod, (Registry, Cstring), registry, method_name)
+txkit_method_compute(ctx::Context, method::TextureMethod, tgt::Image, params::Ptr{Cvoid}, params_size::UInt) = ccall((:txkit_method_compute, libctxkit), Int32, (Context, TextureMethod, Image, Ptr{Cvoid}, UInt), ctx, method, tgt, params, params_size)
+txkit_method_destroy(method::TextureMethod) = ccall((:txkit_method_destroy, libctxkit), Cvoid, (TextureMethod,), method)
+txkit_method_new(registry::Registry, method_name::AbstractString) = ccall((:txkit_method_new, libctxkit), TextureMethod, (Registry, Cstring), registry, method_name)
 
-txkit_registry_destroy(registry::Registry) = ccall((:txkit_registry_destroy, libtxkit_core), Cvoid, (Registry,), registry)
+txkit_registry_destroy(registry::Registry) = ccall((:txkit_registry_destroy, libctxkit), Cvoid, (Registry,), registry)
 
 const StatsMode = Int32
 
@@ -104,7 +104,7 @@ struct DebugParams
     alpha_value::Cfloat
 end
 
-txkit_registry_new_builtin() = ccall((:txkit_registry_new_builtin, libtxkit_builtin), Registry, ())
+txkit_registry_new_builtin() = ccall((:txkit_registry_new_builtin, libctxkit), Registry, ())
 
 end # module
 

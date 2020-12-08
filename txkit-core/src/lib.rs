@@ -4,7 +4,6 @@
 //! computer graphics. It's a Rust library which can be used from other Rust programs as well as
 //! through its C API.
 
-pub mod api;
 #[macro_use]
 pub mod context;
 mod error;

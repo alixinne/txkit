@@ -11,7 +11,7 @@ txkit-core = { version = "=0.1.0", default-features = false }
 argh = "0.1.4"
 color-eyre = "0.5.7"
 image = "0.23.11"
-env_logger = "0.8.1"
+env_logger = "0.8"
 log = "0.4.11"
 
 [features]

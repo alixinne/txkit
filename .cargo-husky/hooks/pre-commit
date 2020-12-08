@@ -16,17 +16,8 @@ fi
 
 # Commit txkit.h if sources have changed
 if [ -n "$(git status --porcelain src cbindgen.toml | awk '/^M /')" ]; then
-    (
-        cd txkit-core
-        rustup run nightly cbindgen -o ../include/txkit_core.h -c ../cbindgen.toml
-    )
-
-    (
-        cd txkit-builtin
-        rustup run nightly cbindgen -o ../include/txkit_builtin.h -c ../cbindgen.toml
-    )
-
-    git add include/txkit_core.h include/txkit_builtin.h
+    ./genbindings.h
+    git add include/txkit.h
 fi
 
 # Generate README unless README.tpl isn't staged

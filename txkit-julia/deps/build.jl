@@ -1,4 +1,4 @@
-const rustlibs = ["txkit-core", "txkit-builtin"]
+const rustlibs = ["ctxkit"]
 const juliapackage = "TxKit"
 
 function build_dylib()
