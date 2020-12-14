@@ -16,7 +16,7 @@ fi
 
 # Commit txkit.h if sources have changed
 if [ -n "$(git status --porcelain src cbindgen.toml | awk '/^M /')" ]; then
-    ./genbindings.h
+    ./genbindings.sh
     git add include/txkit.h
 fi
 
