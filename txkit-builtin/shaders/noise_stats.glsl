@@ -7,6 +7,9 @@
 #define STATS_MODE_PROCESS 1
 #define STATS_MODE_LOOKAT 2
 
+#define LATTICE_MODE_RECT_2D 0
+#define LATTICE_MODE_SIMPLEX_2D 1
+
 #ifndef PARAM_SCALE
 #define PARAM_SCALE scale
 layout(location = 52) uniform float scale;
@@ -21,7 +24,10 @@ struct LatticeNoiseSample {
     uint seed;
 };
 
-LatticeNoiseSample latticeSample(vec2 position) {
+const float SIMPLEX_K1 = 0.366025404;  // (sqrt(3)-1)/2;
+const float SIMPLEX_K2 = 0.211324865;  // (3-sqrt(3))/6;
+
+LatticeNoiseSample latticeSample(vec2 position, int mode) {
     LatticeNoiseSample res;
 
     // Regular sampling mode inside the lattice
@@ -48,8 +54,13 @@ LatticeNoiseSample latticeSample(vec2 position) {
         }
     }
 
-    res.position = fract(position);
-    res.cell = ivec2(position);
+    if (mode == LATTICE_MODE_RECT_2D) {
+        res.position = fract(position);
+        res.cell = ivec2(position);
+    } else if (mode == LATTICE_MODE_SIMPLEX_2D) {
+        res.cell = ivec2(position + (position.x + position.y) * SIMPLEX_K1);
+        res.position = position - vec2(res.cell) + (res.cell.x + res.cell.y) * SIMPLEX_K2;
+    }
 
     return res;
 }

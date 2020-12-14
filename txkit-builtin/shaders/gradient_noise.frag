@@ -21,14 +21,17 @@ float noise(LatticeNoiseSample s) {
 
     vec2 u = f * f * (3. - 2. * f);
 
-    return mix(
-        mix(dot(noisehash(i + uvec2(0, 0), s.seed), f - uvec2(0., 0.)),
-            dot(noisehash(i + uvec2(1, 0), s.seed), f - uvec2(1., 0.)), u.x),
-        mix(dot(noisehash(i + uvec2(0, 1), s.seed), f - uvec2(0., 1.)),
-            dot(noisehash(i + uvec2(1, 1), s.seed), f - uvec2(1., 1.)), u.x),
-        u.y);
+    return mix(mix(dot(noisehash(i + uvec2(0, 0), s.seed), f - uvec2(0., 0.)),
+                   dot(noisehash(i + uvec2(1, 0), s.seed), f - uvec2(1., 0.)),
+                   u.x),
+               mix(dot(noisehash(i + uvec2(0, 1), s.seed), f - uvec2(0., 1.)),
+                   dot(noisehash(i + uvec2(1, 1), s.seed), f - uvec2(1., 1.)),
+                   u.x),
+               u.y) *
+           1.49315244;
 }
 
 void main() {
-    o_FragColor = vec4(vec3(to01(noise(latticeSample(uv.xy)))), 1.0);
+    o_FragColor = vec4(
+        vec3(to01(noise(latticeSample(uv.xy, LATTICE_MODE_RECT_2D)))), 1.0);
 }

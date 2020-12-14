@@ -26,7 +26,10 @@ uint hash(uvec2 x, uint seed) { return hash(seed + morton(x.x, x.y)); }
 
 // vec2 -> vec2 version
 uvec2 hash2(uvec2 x, uint seed) {
-    return uvec2(hash(seed + 2 * x.x), hash(seed + 2 * x.y + 1));
+    // Mix both coordinates into one seed value
+    uint base = hash(seed + morton(x.x, x.y));
+    // Hash both coordinates
+    return uvec2(hash(2 * base), hash(2 * base + 1));
 }
 
 // Converts a vector of unsigned ints to floats in [0,1]

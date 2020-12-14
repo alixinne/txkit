@@ -89,6 +89,13 @@ struct GradientNoiseParams
     stats_look_at::Vector2_f32
 end
 
+struct SimplexNoiseParams
+    global_seed::UInt32
+    scale::Float32
+    stats_mode::StatsMode
+    stats_look_at::Vector2_f32
+end
+
 struct ValueNoiseParams
     global_seed::UInt32
     scale::Float32
@@ -109,9 +116,9 @@ txkit_registry_new_builtin() = ccall((:txkit_registry_new_builtin, libctxkit), R
 end # module
 
 import .Api.Vector2_f32, .Api.StatsMode, .Api.StatsMode_Normal, .Api.StatsMode_Process, .Api.StatsMode_LookAt,
-       .Api.GradientNoiseParams, .Api.ValueNoiseParams, .Api.WhiteNoiseParams, .Api.DebugParams
-export Vector2_f32, StatsMode_Normal, StatsMode_Process, StatsMode_LookAt, GradientNoiseParams, ValueNoiseParams,
-       WhiteNoiseParams, DebugParams, StatsMode
+       .Api.GradientNoiseParams, .Api.SimplexNoiseParams, .Api.ValueNoiseParams, .Api.WhiteNoiseParams, .Api.DebugParams
+export Vector2_f32, StatsMode_Normal, StatsMode_Process, StatsMode_LookAt, GradientNoiseParams, SimplexNoiseParams,
+       ValueNoiseParams, WhiteNoiseParams, DebugParams, StatsMode
 
 struct Context
     context::Api.Context

@@ -114,6 +114,25 @@ typedef struct {
      * look-at parameter (if stats_mode == lookat) in [0, 1]^2
      */
     TxKit_Vector2_f32 stats_look_at;
+} TxKit_SimplexNoiseParams;
+
+typedef struct {
+    /**
+     * pseudo-random seed
+     */
+    uint32_t global_seed;
+    /**
+     * lattice scale (size in pixels)
+     */
+    float scale;
+    /**
+     * stats mode (0: normal, 1: process, 2: lookat)
+     */
+    int32_t stats_mode;
+    /**
+     * look-at parameter (if stats_mode == lookat) in [0, 1]^2
+     */
+    TxKit_Vector2_f32 stats_look_at;
 } TxKit_ValueNoiseParams;
 
 typedef struct {
