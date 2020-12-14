@@ -18,10 +18,10 @@ float noise(LatticeNoiseSample s) {
 
     vec2 u = f * f * (3. - 2. * f);
 
-    return mix(mix(noisehash(i + uvec2(0, 0), s.seed),
-                   noisehash(i + uvec2(1, 0), s.seed), u.x),
-               mix(noisehash(i + uvec2(0, 1), s.seed),
-                   noisehash(i + uvec2(1, 1), s.seed), u.x),
+    return mix(mix(noisehash(latticeLoop(i + uvec2(0, 0)), s.seed),
+                   noisehash(latticeLoop(i + uvec2(1, 0)), s.seed), u.x),
+               mix(noisehash(latticeLoop(i + uvec2(0, 1)), s.seed),
+                   noisehash(latticeLoop(i + uvec2(1, 1)), s.seed), u.x),
                u.y) *
            0.73582062;
 }

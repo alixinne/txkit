@@ -65,4 +65,12 @@ LatticeNoiseSample latticeSample(vec2 position, int mode) {
     return res;
 }
 
+uvec2 latticeLoop(uvec2 p) {
+    if (statsMode == STATS_MODE_NORMAL) {
+        return p % int(PARAM_SCALE);
+    }
+
+    return p;
+}
+
 #endif /* _NOISE_STATS_GLSL_ */
