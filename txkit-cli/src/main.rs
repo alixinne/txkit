@@ -1,10 +1,77 @@
 #[macro_use]
 extern crate log;
 
+use std::io::prelude::*;
 use std::path::PathBuf;
 
 use argh::FromArgs;
 use color_eyre::eyre::Result;
+
+fn write_method_result(
+    width: u32,
+    height: u32,
+    data: &dyn txkit_core::image::MappedImageData,
+    args: &Args,
+) -> Result<()> {
+    if let Some(output_path) = &args.output_path {
+        image::save_buffer(
+            &output_path,
+            data.as_u8_nd_array().unwrap().as_slice().unwrap(),
+            width,
+            height,
+            image::ColorType::Rgba8,
+        )?;
+
+        info!("Wrote {}", output_path.display());
+    } else if let Ok(_) = std::env::var("KITTY_WINDOW_ID") {
+        // We are probably running under Kitty terminal emulator, send image using
+        // TODO: Actually check for support using the query command
+
+        // Buffer for raw PNG data
+        let mut buf = Vec::new();
+        // PNG encoder
+        let encoder = image::codecs::png::PngEncoder::new(&mut buf);
+        // Write PNG to buffer
+        encoder.encode(
+            data.as_u8_nd_array().unwrap().as_slice().unwrap(),
+            width,
+            height,
+            image::ColorType::Rgba8,
+        )?;
+        // Encode to base64
+        let encoded = base64::encode(&buf);
+        // Split into chunks
+        let chunks = encoded.as_bytes().chunks(4096).collect::<Vec<_>>();
+        // Transmit chunks
+        let mut out = std::io::stdout();
+        for (i, chunk) in chunks.iter().enumerate() {
+            match i {
+                0 => {
+                    // First chunk
+                    out.write_all(b"\x1B_Gf=100,a=T,m=1;")?;
+                    out.write_all(chunk)?;
+                    out.write_all(b"\x1B\\")?;
+                }
+                j if j == chunks.len() - 1 => {
+                    // Last chunk
+                    out.write_all(b"\x1B_Gm=0;")?;
+                    out.write_all(chunk)?;
+                    out.write_all(b"\x1B\\")?;
+                }
+                _ => {
+                    // Any other chunk
+                    out.write_all(b"\x1B_Gm=1;")?;
+                    out.write_all(chunk)?;
+                    out.write_all(b"\x1B\\")?;
+                }
+            }
+        }
+    } else {
+        warn!("no output method");
+    }
+
+    Ok(())
+}
 
 fn write_gpu_method_result(
     mut method: Box<dyn txkit_core::method::Method>,
@@ -31,15 +98,7 @@ fn write_gpu_method_result(
 
     // Map it for reading
     let data = img.data()?;
-    image::save_buffer(
-        &args.output_path,
-        data.as_u8_nd_array().unwrap().as_slice().unwrap(),
-        width as u32,
-        height as u32,
-        image::ColorType::Rgba8,
-    )?;
-
-    info!("Wrote {}", args.output_path.display());
+    write_method_result(width as u32, height as u32, &*data, args)?;
 
     Ok(())
 }
@@ -68,15 +127,7 @@ fn write_cpu_method_result(
 
     // Map it for reading
     let data = img.data()?;
-    image::save_buffer(
-        &args.output_path,
-        data.as_u8_nd_array().unwrap().as_slice().unwrap(),
-        width as u32,
-        height as u32,
-        image::ColorType::Rgba8,
-    )?;
-
-    info!("Wrote {}", args.output_path.display());
+    write_method_result(width as u32, height as u32, &*data, args)?;
 
     Ok(())
 }
@@ -90,7 +141,7 @@ struct Args {
 
     #[argh(option, short = 'o')]
     /// output path
-    output_path: PathBuf,
+    output_path: Option<PathBuf>,
 
     #[argh(option, short = 's', default = "256")]
     /// size of the output in pixels
