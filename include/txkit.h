@@ -42,8 +42,14 @@ typedef struct TxKit_Context TxKit_Context;
  */
 typedef struct TxKit_Image TxKit_Image;
 
+/**
+ * Wrapped read-only mapping for FFI
+ */
 typedef struct TxKit_MappedImageDataRead TxKit_MappedImageDataRead;
 
+/**
+ * Wrapped read-write mapping for FFI
+ */
 typedef struct TxKit_MappedImageDataWrite TxKit_MappedImageDataWrite;
 
 /**
@@ -51,6 +57,9 @@ typedef struct TxKit_MappedImageDataWrite TxKit_MappedImageDataWrite;
  */
 typedef struct TxKit_Method TxKit_Method;
 
+/**
+ * Wrapped registry for FFI
+ */
 typedef struct TxKit_Registry TxKit_Registry;
 
 typedef struct {
@@ -150,10 +159,31 @@ typedef struct {
 extern "C" {
 #endif // __cplusplus
 
+/**
+ * Destroy a context
+ *
+ * # Parameters
+ *
+ * * `ctx`: context to destroy
+ */
 TXKIT_API void txkit_context_destroy(TxKit_Context *ctx);
 
+/**
+ * Create a new CPU context
+ *
+ * # Returns
+ *
+ * Pointer to the created context, or null if the creation failed.
+ */
 TXKIT_API TxKit_Context *txkit_context_new_cpu(void);
 
+/**
+ * Create a new GPU context
+ *
+ * # Returns
+ *
+ * Pointer to the created context, or null if the creation failed.
+ */
 TXKIT_API TxKit_Context *txkit_context_new_gpu(void);
 
 /**
@@ -378,6 +408,10 @@ int32_t txkit_method_compute(TxKit_Context *ctx,
 
 /**
  * Destroy a method
+ *
+ * # Parameters
+ *
+ * * `method`: method to destroy
  */
 TXKIT_API void txkit_method_destroy(TxKit_Method *method);
 
@@ -398,6 +432,10 @@ TXKIT_API TxKit_Method *txkit_method_new(const TxKit_Registry *registry, const c
 
 /**
  * Destroy a registry
+ *
+ * # Parameters
+ *
+ * * `registry`: registry to destroy
  */
 TXKIT_API void txkit_registry_destroy(TxKit_Registry *registry);
 

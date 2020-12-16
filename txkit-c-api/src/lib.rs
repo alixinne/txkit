@@ -51,11 +51,16 @@ pub unsafe extern "C" fn txkit_method_compute(
 }
 
 /// Destroy a method
+///
+/// # Parameters
+///
+/// * `method`: method to destroy
 #[no_mangle]
 pub unsafe extern "C" fn txkit_method_destroy(method: *mut MethodBox) {
     std::mem::drop(Box::from_raw(method))
 }
 
+/// Wrapped registry for FFI
 pub struct RegistryBox {
     registry: Box<MethodRegistry>,
 }
@@ -111,6 +116,10 @@ pub extern "C" fn txkit_method_new(
 }
 
 /// Destroy a registry
+///
+/// # Parameters
+///
+/// * `registry`: registry to destroy
 #[no_mangle]
 pub unsafe extern "C" fn txkit_registry_destroy(registry: *mut RegistryBox) {
     std::mem::drop(Box::from_raw(registry))
@@ -243,6 +252,7 @@ pub extern "C" fn txkit_image_sync(image: &mut Image) -> i32 {
     crate::api::wrap_result_code(|| image.sync())
 }
 
+/// Wrapped read-only mapping for FFI
 pub struct MappedImageDataReadBox {
     ptr: Box<dyn MappedImageData>,
 }
@@ -308,6 +318,7 @@ pub unsafe extern "C" fn txkit_image_unmap_read(read_map: *mut MappedImageDataRe
     std::mem::drop(Box::from_raw(read_map))
 }
 
+/// Wrapped read-write mapping for FFI
 pub struct MappedImageDataWriteBox {
     ptr: Box<dyn MappedImageDataMut>,
 }
@@ -377,18 +388,33 @@ pub unsafe extern "C" fn txkit_image_unmap_write(write_map: *mut MappedImageData
     std::mem::drop(Box::from_raw(write_map))
 }
 
+/// Create a new CPU context
+///
+/// # Returns
+///
+/// Pointer to the created context, or null if the creation failed.
 #[no_mangle]
 pub extern "C" fn txkit_context_new_cpu() -> *mut Context {
     crate::api::wrap_result(|| Context::new_cpu().map(Box::new).map(Box::into_raw))
         .unwrap_or(std::ptr::null_mut())
 }
 
+/// Create a new GPU context
+///
+/// # Returns
+///
+/// Pointer to the created context, or null if the creation failed.
 #[no_mangle]
 pub extern "C" fn txkit_context_new_gpu() -> *mut Context {
     crate::api::wrap_result(|| Context::new_gpu().map(Box::new).map(Box::into_raw))
         .unwrap_or(std::ptr::null_mut())
 }
 
+/// Destroy a context
+///
+/// # Parameters
+///
+/// * `ctx`: context to destroy
 #[no_mangle]
 pub unsafe extern "C" fn txkit_context_destroy(ctx: *mut Context) {
     std::mem::drop(Box::from_raw(ctx))
