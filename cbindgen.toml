@@ -13,11 +13,11 @@ documentation_style = "doxy"
 
 [export]
 include = [
+	"DebugParams",
 	"GradientNoiseParams",
 	"SimplexNoiseParams",
 	"ValueNoiseParams",
 	"WhiteNoiseParams",
-	"DebugParams",
 ]
 
 prefix = "TxKit_"

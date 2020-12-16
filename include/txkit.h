@@ -71,6 +71,10 @@ typedef struct {
 
 typedef TxKit_ImageDimensions_usize TxKit_ImageDim;
 
+typedef struct {
+    float alpha_value;
+} TxKit_DebugParams;
+
 /**
  * A 2-dimensional vector.
  *
@@ -150,10 +154,6 @@ typedef struct {
      */
     uint32_t global_seed;
 } TxKit_WhiteNoiseParams;
-
-typedef struct {
-    float alpha_value;
-} TxKit_DebugParams;
 
 #ifdef __cplusplus
 extern "C" {
