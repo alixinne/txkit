@@ -16,11 +16,17 @@ layout(location = 0) out vec4 o_FragColor;
 
 void main() {
     ivec3 px = ivec3(uv * vec3(iResolution));
-    uint idx = 4u * (px.x + px.y * iResolution.x +
-                     px.z * iResolution.x * iResolution.y + globalSeed);
 
-    o_FragColor = vec4(tofloat(hash(idx)), tofloat(hash(idx + 1)),
-                       tofloat(hash(idx + 2)), tofloat(hash(idx + 3)));
+    uvec2 idx = shl64(
+        mul64(add64(uvec2(0, px.x), uvec2(0, globalSeed)),
+              uvec2(0, iResolution.x), uvec2(0, px.y + px.z * iResolution.y))
+            .zw,
+        2);
+
+    o_FragColor = vec4(tofloat(hash64(idx | uvec2(0, 0)).x),
+                       tofloat(hash64(idx | uvec2(0, 1)).x),
+                       tofloat(hash64(idx | uvec2(0, 2)).x),
+                       tofloat(hash64(idx | uvec2(0, 3)).x));
 }
 
 // vim: ft=glsl.doxygen

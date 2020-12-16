@@ -29,6 +29,126 @@ uint hash(uint x) {
 }
 
 /**
+ * @brief 64-bit addition
+ * @param a First operand
+ * @param b Second operand
+ * @see https://www.bearssl.org/bigint.html#additions-and-subtractions-1
+ */
+uvec2 add64(uvec2 a, uvec2 b) {
+    uint cc = 0, naw;
+
+    // Low word
+    naw = a.y + b.y + cc;
+
+    cc = (cc & (naw == a.y ? 1 : 0)) | (naw < a.y ? 1 : 0);
+    a.y = naw;
+
+    // High word
+    naw = a.x + b.x + cc;
+
+    cc = (cc & (naw == a.x ? 1 : 0)) | (naw < a.x ? 1 : 0);
+    a.x = naw;
+
+    return a;
+}
+
+/**
+ * @brief 64-bit left shift
+ * @param a First operand
+ * @param b Second operand
+ * @see https://www.bearssl.org/bigint.html#additions-and-subtractions-1
+ */
+uvec2 shl64(uvec2 a, uint b) {
+    a.x = (a.x << b) | (a.y >> (32 - b));
+    a.y <<= b;
+    return a;
+}
+
+/**
+ * @brief 64-bit right shift
+ * @param a First operand
+ * @param b Second operand
+ * @see https://www.bearssl.org/bigint.html#additions-and-subtractions-1
+ */
+uvec2 shr64(uvec2 a, uint b) {
+    a.y = (a.y >> b) | (a.x << (32 - b));
+    a.x >>= b;
+    return a;
+}
+
+/**
+ * @brief 64-bit multiplication and accumulation (d + a * b)
+ * @param d First operand
+ * @param a Second operand
+ * @param b Third operand
+ * @see https://www.bearssl.org/gitweb/?p=BearSSL;a=blob;f=src/int/i32_mulacc.c
+ */
+uvec4 mul64(uvec4 d, uvec2 a, uvec2 b) {
+    uint f, v;
+    uvec2 cc, z;
+
+    {
+        f = b.y;
+        cc = uvec2(0);
+
+        {
+            z = add64(add64(uvec2(0, d.w), uvec2(0, f * a.y)), cc);
+            cc = uvec2(0, z.x);  // z >> 32
+            d.w = z.y;           // (uint32_t)z
+
+            z = add64(add64(uvec2(0, d.z), uvec2(0, f * a.x)), cc);
+            cc = uvec2(0, z.x);  // z >> 32
+            d.z = z.y;           // (uint32_t)z
+        }
+
+        d.y = cc.y;  // (uint32_t)cc
+    }
+
+    {
+        f = b.x;
+        cc = uvec2(0);
+
+        {
+            z = add64(add64(uvec2(0, d.z), uvec2(0, f * a.y)), cc);
+            cc = uvec2(0, z.x);  // z >> 32
+            d.z = z.y;           // (uint32_t)z
+
+            z = add64(add64(uvec2(0, d.y), uvec2(0, f * a.x)), cc);
+            cc = uvec2(0, z.x);  // z >> 32
+            d.y = z.y;           // (uint32_t)z
+        }
+
+        d.x = cc.y;  // (uint32_t)cc
+    }
+
+    return d;
+}
+
+/**
+ * @brief 64-bit multiplication and accumulation (d + a * b)
+ * @param d First operand
+ * @param a Second operand
+ * @param b Third operand
+ * @see https://www.bearssl.org/gitweb/?p=BearSSL;a=blob;f=src/int/i32_mulacc.c
+ */
+uvec4 mul64(uvec2 d, uvec2 a, uvec2 b) {
+    return mul64(uvec4(0, 0, d.x, d.y), a, b);
+}
+
+/**
+ * @brief 64-bit hash function
+ * @param x Low and high word of the 64-bit value
+ * @return Hashed value
+ * @see http://xoshiro.di.unimi.it/splitmix64.c
+ */
+uvec2 hash64(uvec2 x) {
+    x = add64(x, uvec2(0x9e3779b9u, 0x7f4a7c15u));
+    x = mul64(uvec4(0), x ^ shr64(x, 30), uvec2(0xbf58476du, 0x1ce4e5b9u)).zw;
+    x = mul64(uvec4(0), x ^ shr64(x, 27), uvec2(0x94d049bbu, 0x133111ebu)).zw;
+    return x ^ shr64(x, 31);
+}
+
+/**
  * @brief Insert a 0 bit after each of the 16 low bits of x
  * @param x Value to part
  * @see https://fgiesen.wordpress.com/2009/12/13/decoding-morton-codes/
@@ -90,6 +210,20 @@ uint morton(uint x, uint y, uint z) {
  */
 uint hash(uvec2 x, uint seed) {
     return hash((seed << 16) | (0x0000ffffu & morton(x.x, x.y)));
+}
+
+/**
+ * @brief Hash a (coordinates, seed) pair
+ * @param x Coordinates
+ * @param seed Random seed
+ * @return Hashed value
+ *
+ * Note that the coordinates are enumerated in Morton order, then hashed along
+ * with the seed. This version performs 64-bit arithmetic, thus, cell
+ * coordinates are limited to their low 16 bits. The seed is utilized fully.
+ */
+uvec2 hash64(uvec2 x, uint seed) {
+    return hash64(uvec2(seed, morton(x.x, x.y)));
 }
 
 /**
