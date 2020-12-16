@@ -45,27 +45,27 @@ fn write_method_result(
         // Transmit chunks
         let mut out = std::io::stdout();
         for (i, chunk) in chunks.iter().enumerate() {
+            let last = if i == chunks.len() - 1 { b"0" } else { b"1" };
+
             match i {
                 0 => {
                     // First chunk
-                    out.write_all(b"\x1B_Gf=100,a=T,m=1;")?;
-                    out.write_all(chunk)?;
-                    out.write_all(b"\x1B\\")?;
-                }
-                j if j == chunks.len() - 1 => {
-                    // Last chunk
-                    out.write_all(b"\x1B_Gm=0;")?;
-                    out.write_all(chunk)?;
-                    out.write_all(b"\x1B\\")?;
+                    out.write_all(b"\x1B_Gf=100,a=T,m=")?;
                 }
                 _ => {
-                    // Any other chunk
-                    out.write_all(b"\x1B_Gm=1;")?;
-                    out.write_all(chunk)?;
-                    out.write_all(b"\x1B\\")?;
+                    // Other chunks
+                    out.write_all(b"\x1B_Gm=")?;
                 }
             }
+
+            out.write_all(last)?;
+            out.write_all(b";")?;
+            out.write_all(chunk)?;
+            out.write_all(b"\x1B\\")?;
         }
+
+        // Finish with new-line
+        out.write_all(b"\n")?;
     } else {
         warn!("no output method");
     }
