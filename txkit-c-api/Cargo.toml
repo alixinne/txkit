@@ -6,7 +6,7 @@ edition = "2018"
 
 [lib]
 name = "ctxkit"
-crate_type = ["cdylib"]
+crate_type = ["rlib", "cdylib"]
 
 [dependencies]
 txkit-core = "=0.1.0"
@@ -15,3 +15,18 @@ txkit-builtin = "=0.1.0"
 env_logger = "0.8"
 lazy_static = "1.4.0"
 libc = "0.2"
+
+[dev-dependencies]
+libc = "0.2"
+tempdir = "0.3"
+
+[[test]]
+name = "c_api"
+harness = false
+required-features = ["cpu", "gpu"]
+
+[features]
+default = ["cpu", "gpu"]
+cpu = ["txkit-builtin/cpu"]
+gpu = ["txkit-builtin/gpu"]
+gpu45 = ["txkit-builtin/gpu45"]

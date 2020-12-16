@@ -5,7 +5,6 @@ members = [
   "txkit-cli",
   "txkit-core",
   "txkit-impl",
-  "txkit-tests"
 ]
 
 [patch.crates-io]

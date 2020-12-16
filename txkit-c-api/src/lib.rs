@@ -7,6 +7,10 @@ use txkit_core::{
     Error,
 };
 
+pub mod config {
+    include!(concat!(env!("OUT_DIR"), "/config.rs"));
+}
+
 mod api;
 
 /// Wrapped method for FFI
