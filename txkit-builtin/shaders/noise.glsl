@@ -1,3 +1,9 @@
+/**
+ * @file noise.glsl
+ * @brief Shared noise definitions
+ * @author Vincent Tavernier <vince.tavernier@gmail.com>
+ */
+
 #ifndef _NOISE_GLSL_
 #define _NOISE_GLSL_
 
@@ -7,3 +13,5 @@ layout(location = 10) uniform uint globalSeed;
 #endif /* PARAM_GLOBAL_SEED */
 
 #endif /* _NOISE_GLSL_ */
+
+// vim: ft=glsl.doxygen

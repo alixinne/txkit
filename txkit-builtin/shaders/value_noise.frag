@@ -1,5 +1,15 @@
 #version 460 core
 
+/**
+ * @file value_noise.frag
+ * @brief 2D value noise fragment shader
+ * @author inigo quilez
+ * @author Vincent Tavernier <vince.tavernier@gmail.com>
+ * @see https://www.shadertoy.com/view/lsf3WH
+ *
+ * 2D value noise, adapted for use in txkit.
+ */
+
 layout(location = 0) in vec3 uv;
 layout(location = 0) out vec4 o_FragColor;
 
@@ -30,3 +40,5 @@ void main() {
     o_FragColor =
         vec4(vec3(noise(latticeSample(uv.xy, LATTICE_MODE_RECT_2D))), 1.0);
 }
+
+// vim: ft=glsl.doxygen

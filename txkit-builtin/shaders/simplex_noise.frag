@@ -1,5 +1,16 @@
 #version 460 core
 
+/**
+ * @file simplex_noise.frag
+ * @brief 2D simplex noise fragment shader
+ * @author inigo quilez
+ * @author Vincent Tavernier <vince.tavernier@gmail.com>
+ * @see https://www.shadertoy.com/view/Msf3WH
+ * @todo Support cyclic coordinates
+ *
+ * 2D Simplex noise, adapted for use in txkit.
+ */
+
 layout(location = 0) in vec3 uv;
 layout(location = 0) out vec4 o_FragColor;
 
@@ -30,3 +41,5 @@ void main() {
     o_FragColor = vec4(
         vec3(to01(noise(latticeSample(uv.xy, LATTICE_MODE_SIMPLEX_2D)))), 1.0);
 }
+
+// vim: ft=glsl.doxygen
