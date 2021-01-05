@@ -89,6 +89,41 @@ struct GradientNoiseParams
     stats_look_at::Vector2_f32
 end
 
+const PhasorNoiseProfile = Int32
+
+const PhasorNoiseProfile_Complex = PhasorNoiseProfile(0)
+const PhasorNoiseProfile_Real = PhasorNoiseProfile(1)
+const PhasorNoiseProfile_Imag = PhasorNoiseProfile(2)
+const PhasorNoiseProfile_Sin = PhasorNoiseProfile(3)
+const PhasorNoiseProfile_Saw = PhasorNoiseProfile(4)
+
+const PhasorNoiseWeights = Int32
+
+const PhasorNoiseWeights_None = PhasorNoiseWeights(0)
+const PhasorNoiseWeights_Bernoulli = PhasorNoiseWeights(1)
+const PhasorNoiseWeights_Uniform = PhasorNoiseWeights(2)
+
+const PhasorNoisePointDistribution = Int32
+
+const PhasorNoisePointDistribution_StratPoisson = PhasorNoisePointDistribution(0)
+const PhasorNoisePointDistribution_Poisson = PhasorNoisePointDistribution(1)
+
+struct PhasorNoiseParams
+    global_seed::UInt32
+    scale::Float32
+    stats_mode::StatsMode
+    stats_look_at::Vector2_f32
+
+    noise_lookahead::Int32
+    kernel_count::Int32
+    noise_profile::PhasorNoiseProfile
+    noise_weights::PhasorNoiseWeights
+    noise_point_distribution::PhasorNoisePointDistribution
+
+    noise_frequency::Float32
+    noise_angle::Float32
+end
+
 struct SimplexNoiseParams
     global_seed::UInt32
     scale::Float32
@@ -115,9 +150,24 @@ txkit_registry_new_builtin() = ccall((:txkit_registry_new_builtin, libctxkit), R
 
 end # module
 
-import .Api.Vector2_f32, .Api.StatsMode, .Api.StatsMode_Normal, .Api.StatsMode_Process, .Api.StatsMode_LookAt,
-       .Api.GradientNoiseParams, .Api.SimplexNoiseParams, .Api.ValueNoiseParams, .Api.WhiteNoiseParams, .Api.DebugParams
-export Vector2_f32, StatsMode_Normal, StatsMode_Process, StatsMode_LookAt, GradientNoiseParams, SimplexNoiseParams,
+import .Api.Vector2_f32, .Api.StatsMode, .Api.StatsMode_Normal,
+       .Api.StatsMode_Process, .Api.StatsMode_LookAt, .Api.GradientNoiseParams,
+       .Api.PhasorNoiseProfile, .Api.PhasorNoiseProfile_Complex,
+       .Api.PhasorNoiseProfile_Real, .Api.PhasorNoiseProfile_Imag,
+       .Api.PhasorNoiseProfile_Sin, .Api.PhasorNoiseProfile_Saw,
+       .Api.PhasorNoiseWeights, .Api.PhasorNoiseWeights_None,
+       .Api.PhasorNoiseWeights_Bernoulli, .Api.PhasorNoiseWeights_Uniform,
+       .Api.PhasorNoisePointDistribution,
+       .Api.PhasorNoisePointDistribution_StratPoisson,
+       .Api.PhasorNoisePointDistribution_Poisson, .Api.PhasorNoiseParams,
+       .Api.SimplexNoiseParams, .Api.ValueNoiseParams, .Api.WhiteNoiseParams,
+       .Api.DebugParams
+
+export Vector2_f32, StatsMode_Normal, StatsMode_Process, StatsMode_LookAt, GradientNoiseParams, PhasorNoiseParams,
+       PhasorNoiseProfile, PhasorNoiseProfile_Complex, PhasorNoiseProfile_Real, PhasorNoiseProfile_Imag,
+       PhasorNoiseProfile_Sin, PhasorNoiseProfile_Saw, PhasorNoiseWeights, PhasorNoiseWeights_None,
+       PhasorNoiseWeights_Bernoulli, PhasorNoiseWeights_Uniform, PhasorNoisePointDistribution,
+       PhasorNoisePointDistribution_StratPoisson, PhasorNoisePointDistribution_Poisson, SimplexNoiseParams,
        ValueNoiseParams, WhiteNoiseParams, DebugParams, StatsMode
 
 struct Context

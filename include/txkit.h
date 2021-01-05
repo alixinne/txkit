@@ -127,6 +127,53 @@ typedef struct {
      * look-at parameter (if stats_mode == lookat) in [0, 1]^2
      */
     TxKit_Vector2_f32 stats_look_at;
+    /**
+     * cell lookahead: number of cells to check for contributions
+     */
+    int32_t noise_lookahead;
+    /**
+     * kernel count per cell
+     */
+    int32_t kernel_count;
+    /**
+     * noise profile function
+     */
+    int32_t noise_profile;
+    /**
+     * noise weights
+     */
+    int32_t noise_weights;
+    /**
+     * point distribution
+     */
+    int32_t noise_point_distribution;
+    /**
+     * noise frequency (in oscillations / noise cell)
+     */
+    float noise_frequency;
+    /**
+     * noise angle (in radians)
+     */
+    float noise_angle;
+} TxKit_PhasorNoiseParams;
+
+typedef struct {
+    /**
+     * pseudo-random seed
+     */
+    uint32_t global_seed;
+    /**
+     * lattice scale (size in pixels)
+     */
+    float scale;
+    /**
+     * stats mode (0: normal, 1: process, 2: lookat)
+     */
+    int32_t stats_mode;
+    /**
+     * look-at parameter (if stats_mode == lookat) in [0, 1]^2
+     */
+    TxKit_Vector2_f32 stats_look_at;
 } TxKit_SimplexNoiseParams;
 
 typedef struct {

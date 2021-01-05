@@ -104,7 +104,22 @@ LatticeNoiseSample latticeSample(vec2 position, int mode) {
 /**
  * @brief Ensure 2D lattice cells loop around the texture borders
  * @param p Cell coordinates to loop
- * @todo Support negative cell coordinates with ivec
+ * @todo Support looping simplex grids
+ */
+ivec2 latticeLoop(ivec2 p) {
+    const int S = int(PARAM_SCALE);
+
+    if (statsMode == STATS_MODE_NORMAL) {
+        return ivec2(p.x >= 0 ? p.x % S : S - (-p.x % S),
+                     p.y >= 0 ? p.y % S : S - (-p.y % S));
+    }
+
+    return p;
+}
+
+/**
+ * @brief Ensure 2D lattice cells loop around the texture borders
+ * @param p Cell coordinates to loop
  * @todo Support looping simplex grids
  */
 uvec2 latticeLoop(uvec2 p) {

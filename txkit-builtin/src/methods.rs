@@ -13,6 +13,9 @@ pub use gradient_noise::*;
 mod simplex_noise;
 pub use simplex_noise::*;
 
+mod phasor_noise;
+pub use phasor_noise::*;
+
 use txkit_core::method::MethodRegistry;
 pub fn new_registry() -> MethodRegistry {
     let mut registry = MethodRegistry::new();
@@ -24,5 +27,6 @@ pub fn new_registry() -> MethodRegistry {
         Box::new(|| Box::new(GradientNoise::new())),
     );
     registry.register("simplex_noise", Box::new(|| Box::new(SimplexNoise::new())));
+    registry.register("phasor_noise", Box::new(|| Box::new(PhasorNoise::new())));
     registry
 }

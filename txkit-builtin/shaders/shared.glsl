@@ -9,6 +9,7 @@
 
 /// The pi mathematical constant
 #define M_PI 3.14159265358979323846
+#define M_2PI (2. * M_PI)
 
 /// Output image resolution
 layout(location = 0) uniform uvec3 iResolution;
@@ -283,6 +284,13 @@ vec2 tofloat11(uvec2 u) { return 2. * tofloat(u) - 1.; }
  * @return Value in [0, 1]
  */
 float to01(float x) { return .5 * x + .5; }
+
+/**
+ * @brief Convert a float value from [-1, 1] to [0, 1]
+ * @param x Value to convert
+ * @return Value in [0, 1]
+ */
+vec2 to01(vec2 x) { return .5 * x + .5; }
 
 #endif /* _SHARED_GLSL_ */
 

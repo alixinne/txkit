@@ -15,6 +15,7 @@ documentation_style = "doxy"
 include = [
 	"DebugParams",
 	"GradientNoiseParams",
+	"PhasorNoiseParams",
 	"SimplexNoiseParams",
 	"ValueNoiseParams",
 	"WhiteNoiseParams",
