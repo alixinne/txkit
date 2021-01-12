@@ -33,7 +33,13 @@ layout(location = 24) uniform int noise_point_distribution;
 layout(location = 25) uniform float noise_frequency;
 layout(location = 26) uniform float noise_angle;
 
+layout(location = 27) uniform float jitter_amount;
+layout(location = 28) uniform int jitter_max;
+
 #define PHASOR_PROFILE_IMPULSES 5
+
+#define PHASOR_POINTS_RECT_JITTERED 2
+#define PHASOR_POINTS_HEX_JITTERED 3
 
 struct Kernel {
     vec2 pos;
@@ -65,17 +71,45 @@ vec2 noiseCell(vec2 pos, ivec2 cell, uint seed) {
     LCG rng = lcgSeed(hash(cell, seed));
 
     // Compute impulse count
-    int ic = kernel_count;
+    int ic = kernel_count, tc;
+    ivec2 bc;
 
     if (noise_point_distribution == 1 /* PHASOR_POINTS_POISSON */) {
         ic = lcgPoisson(rng, ic);
+    } else if (noise_point_distribution == PHASOR_POINTS_RECT_JITTERED ||
+            noise_point_distribution == PHASOR_POINTS_HEX_JITTERED) {
+        bc.x = int(sqrt(ic));
+        bc.x = jitter_max == 0 ? bc.x : min(jitter_max, bc.x);
+        bc.y = jitter_max == 0 ? ic / bc.x : min(jitter_max, ic / bc.x);
+        tc = bc.x * bc.y;
+        ic = (ic / tc) * tc;
     }
 
     // Fixed number of impulses per cell
     for (int i = 0; i < ic; ++i) {
         // Generate a kernel
         Kernel k;
-        k.pos = vec2(lcgNext01(rng), lcgNext01(rng));
+        k.pos = .5 + (vec2(lcgNext01(rng), lcgNext01(rng)) - .5) * jitter_amount;
+
+        if (noise_point_distribution == PHASOR_POINTS_RECT_JITTERED ||
+                noise_point_distribution == PHASOR_POINTS_HEX_JITTERED)
+        {
+            int col = (i % tc) % bc.x;
+            int row = (i % tc) / bc.x;
+
+            if (noise_point_distribution == PHASOR_POINTS_HEX_JITTERED)
+            {
+                // Triangle transform
+                k.pos = vec2(.25 * (k.pos.x - k.pos.y), .5 * abs(k.pos.x + k.pos.y));
+
+                // Offset one every two triangles
+                if ((ic + row) % 2 == 0)
+                    k.pos = vec2(k.pos.x + .5, 1. - k.pos.y);
+            }
+
+            k.pos = (k.pos + vec2(col, row)) / vec2(bc);
+        }
+
         k.frequency = noise_frequency / scale;
         k.phase = 0.;
         k.angle = noise_angle;

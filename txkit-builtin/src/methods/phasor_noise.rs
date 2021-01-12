@@ -24,6 +24,10 @@ pub const PHASOR_WEIGHTS_UNIFORM: i32 = 2;
 pub const PHASOR_POINTS_STRAT_POSSION: i32 = 0;
 /// Phasor: Poisson number of impulses per cell
 pub const PHASOR_POINTS_POISSON: i32 = 1;
+/// Phasor: rectangular jittered grid
+pub const PHASOR_POINTS_RECT_JITTERED: i32 = 2;
+/// Phasor: hexagonal jittered grid
+pub const PHASOR_POINTS_HEX_JITTERED: i32 = 3;
 
 #[derive(Clone, Copy, PartialEq, ParamsFor)]
 #[repr(C)]
@@ -53,6 +57,11 @@ pub struct PhasorNoiseParams {
     pub noise_frequency: f32,
     /// noise angle (in radians)
     pub noise_angle: f32,
+
+    /// jittering amount, 0 = no random, 1 = full subcell random
+    pub jitter_amount: f32,
+    /// max jittering subcells, 0 = no limit
+    pub jitter_max: i32,
 }
 
 impl Default for PhasorNoiseParams {
@@ -69,6 +78,8 @@ impl Default for PhasorNoiseParams {
             noise_point_distribution: PHASOR_POINTS_STRAT_POSSION,
             noise_frequency: 4.,
             noise_angle: 0.,
+            jitter_amount: 1.,
+            jitter_max: 0,
         }
     }
 }

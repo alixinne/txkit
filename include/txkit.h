@@ -155,6 +155,14 @@ typedef struct {
      * noise angle (in radians)
      */
     float noise_angle;
+    /**
+     * jittering amount, 0 = no random, 1 = full subcell random
+     */
+    float jitter_amount;
+    /**
+     * max jittering subcells, 0 = no limit
+     */
+    int32_t jitter_max;
 } TxKit_PhasorNoiseParams;
 
 typedef struct {

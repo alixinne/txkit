@@ -108,6 +108,8 @@ const PhasorNoisePointDistribution = Int32
 
 const PhasorNoisePointDistribution_StratPoisson = PhasorNoisePointDistribution(0)
 const PhasorNoisePointDistribution_Poisson = PhasorNoisePointDistribution(1)
+const PhasorNoisePointDistribution_RectJittered = PhasorNoisePointDistribution(2)
+const PhasorNoisePointDistribution_HexJittered = PhasorNoisePointDistribution(3)
 
 struct PhasorNoiseParams
     global_seed::UInt32
@@ -123,6 +125,9 @@ struct PhasorNoiseParams
 
     noise_frequency::Float32
     noise_angle::Float32
+
+    jitter_amount::Float32
+    jitter_max::Int32
 end
 
 struct SimplexNoiseParams
