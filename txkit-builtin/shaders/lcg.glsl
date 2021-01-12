@@ -15,6 +15,7 @@ LCG lcgSeed(uint seed) { return LCG(seed); }
 
 uint lcgNext(inout LCG lcg) {
     uint x = (1103515245 * lcg.state + 12345) % (1 << 31);
+    lcg.state = x;
     return x >> 16;
 }
 
