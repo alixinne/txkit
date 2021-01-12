@@ -33,6 +33,8 @@ layout(location = 24) uniform int noise_point_distribution;
 layout(location = 25) uniform float noise_frequency;
 layout(location = 26) uniform float noise_angle;
 
+#define PHASOR_PROFILE_IMPULSES 5
+
 struct Kernel {
     vec2 pos;
     float frequency;
@@ -42,6 +44,10 @@ struct Kernel {
 };
 
 vec2 phasor(vec2 x, Kernel k) {
+    if (noise_profile == PHASOR_PROFILE_IMPULSES) {
+        return exp(-M_PI * (0.125 * iResolution.x / scale) * (0.125 * iResolution.x / scale) * dot(x, x)) * vec2(1., k.weight);
+    }
+
     float gaus, osc;
     float b = (1. / scale) * (1. / scale) * M_PI;
 
@@ -120,6 +126,8 @@ vec3 noise(LatticeNoiseSample s) {
         return vec3(to01(res.x / kernel_count));
     } else if (noise_profile == 2 /* PHASOR_PROFILE_IMAG */) {
         return vec3(to01(res.y / kernel_count));
+    } else if (noise_profile == PHASOR_PROFILE_IMPULSES) {
+        return vec3(res, min(s.position.x, s.position.y) < scale / iResolution.x ? 1. : 0.);
     } else {
         float ph = atan(res.x, res.y);
 

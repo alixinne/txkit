@@ -96,6 +96,7 @@ const PhasorNoiseProfile_Real = PhasorNoiseProfile(1)
 const PhasorNoiseProfile_Imag = PhasorNoiseProfile(2)
 const PhasorNoiseProfile_Sin = PhasorNoiseProfile(3)
 const PhasorNoiseProfile_Saw = PhasorNoiseProfile(4)
+const PhasorNoiseProfile_Impulses = PhasorNoiseProfile(5)
 
 const PhasorNoiseWeights = Int32
 
@@ -155,9 +156,9 @@ import .Api.Vector2_f32, .Api.StatsMode, .Api.StatsMode_Normal,
        .Api.PhasorNoiseProfile, .Api.PhasorNoiseProfile_Complex,
        .Api.PhasorNoiseProfile_Real, .Api.PhasorNoiseProfile_Imag,
        .Api.PhasorNoiseProfile_Sin, .Api.PhasorNoiseProfile_Saw,
-       .Api.PhasorNoiseWeights, .Api.PhasorNoiseWeights_None,
-       .Api.PhasorNoiseWeights_Bernoulli, .Api.PhasorNoiseWeights_Uniform,
-       .Api.PhasorNoisePointDistribution,
+       .Api.PhasorNoiseProfile_Impulses, .Api.PhasorNoiseWeights,
+       .Api.PhasorNoiseWeights_None, .Api.PhasorNoiseWeights_Bernoulli,
+       .Api.PhasorNoiseWeights_Uniform, .Api.PhasorNoisePointDistribution,
        .Api.PhasorNoisePointDistribution_StratPoisson,
        .Api.PhasorNoisePointDistribution_Poisson, .Api.PhasorNoiseParams,
        .Api.SimplexNoiseParams, .Api.ValueNoiseParams, .Api.WhiteNoiseParams,
@@ -165,8 +166,8 @@ import .Api.Vector2_f32, .Api.StatsMode, .Api.StatsMode_Normal,
 
 export Vector2_f32, StatsMode_Normal, StatsMode_Process, StatsMode_LookAt, GradientNoiseParams, PhasorNoiseParams,
        PhasorNoiseProfile, PhasorNoiseProfile_Complex, PhasorNoiseProfile_Real, PhasorNoiseProfile_Imag,
-       PhasorNoiseProfile_Sin, PhasorNoiseProfile_Saw, PhasorNoiseWeights, PhasorNoiseWeights_None,
-       PhasorNoiseWeights_Bernoulli, PhasorNoiseWeights_Uniform, PhasorNoisePointDistribution,
+       PhasorNoiseProfile_Sin, PhasorNoiseProfile_Saw, PhasorNoiseProfile_Impulses, PhasorNoiseWeights,
+       PhasorNoiseWeights_None, PhasorNoiseWeights_Bernoulli, PhasorNoiseWeights_Uniform, PhasorNoisePointDistribution,
        PhasorNoisePointDistribution_StratPoisson, PhasorNoisePointDistribution_Poisson, SimplexNoiseParams,
        ValueNoiseParams, WhiteNoiseParams, DebugParams, StatsMode
 

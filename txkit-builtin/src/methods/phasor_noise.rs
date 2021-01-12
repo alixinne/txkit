@@ -10,6 +10,8 @@ pub const PHASOR_PROFILE_IMAG: i32 = 2;
 pub const PHASOR_PROFILE_SIN: i32 = 3;
 /// Phasor: phasor sawtooth wave
 pub const PHASOR_PROFILE_SAW: i32 = 4;
+/// Phasor: show impulse locations
+pub const PHASOR_PROFILE_IMPULSES: i32 = 5;
 
 /// Phasor: no kernel weights
 pub const PHASOR_WEIGHTS_NONE: i32 = 0;
