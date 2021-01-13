@@ -147,3 +147,14 @@ impl Image {
         Err(ImageCreationError::ContextNotSupported)
     }
 }
+
+impl std::fmt::Debug for Image {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let dim = self.dim();
+        write!(
+            f,
+            "[{}w x {}h x {}d x {}c image]",
+            dim.width, dim.height, dim.depth, dim.channels
+        )
+    }
+}
