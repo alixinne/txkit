@@ -96,6 +96,8 @@ struct GradientNoiseParams
     stats_look_at::Vector2_f32
 end
 
+GradientNoiseParams() = GradientNoiseParams(0, 32., StatsMode_Normal, Vector2_f32(0., 0.))
+
 const PhasorNoiseProfile = Int32
 
 const PhasorNoiseProfile_Complex = PhasorNoiseProfile(0)
@@ -139,12 +141,16 @@ struct PhasorNoiseParams
     io::ImageIo
 end
 
+PhasorNoiseParams() = PhasorNoiseParams(0, 32., StatsMode_Normal, Vector2_f32(0., 0.), 1, 8, PhasorNoiseProfile_Sin, PhasorNoiseWeights_None, PhasorNoisePointDistribution_StratPoisson, 4., 0., 1., 0, txkit_image_io_new())
+
 struct SimplexNoiseParams
     global_seed::UInt32
     scale::Float32
     stats_mode::StatsMode
     stats_look_at::Vector2_f32
 end
+
+SimplexNoiseParams() = SimplexNoiseParams(0, 32., StatsMode_Normal, Vector2_f32(0., 0.))
 
 struct ValueNoiseParams
     global_seed::UInt32
@@ -153,13 +159,19 @@ struct ValueNoiseParams
     stats_look_at::Vector2_f32
 end
 
+ValueNoiseParams() = ValueNoiseParams(0, 32., StatsMode_Normal, Vector2_f32(0., 0.))
+
 struct WhiteNoiseParams
     global_seed::UInt32
 end
 
+WhiteNoiseParams() = WhiteNoiseParams(0)
+
 struct DebugParams
     alpha_value::Cfloat
 end
+
+DebugParams() = DebugParams(1.0)
 
 txkit_registry_new_builtin() = ccall((:txkit_registry_new_builtin, libctxkit), Registry, ())
 
