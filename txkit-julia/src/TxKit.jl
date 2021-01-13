@@ -35,6 +35,8 @@ const TextureMethod = Ptr{Cvoid}
 
 const Registry = Ptr{Cvoid}
 
+const ImageIo = Ptr{Cvoid}
+
 struct ImageDim
     width::UInt
     height::UInt
@@ -70,6 +72,11 @@ txkit_method_destroy(method::TextureMethod) = ccall((:txkit_method_destroy, libc
 txkit_method_new(registry::Registry, method_name::AbstractString) = ccall((:txkit_method_new, libctxkit), TextureMethod, (Registry, Cstring), registry, method_name)
 
 txkit_registry_destroy(registry::Registry) = ccall((:txkit_registry_destroy, libctxkit), Cvoid, (Registry,), registry)
+
+txkit_image_io_destroy(io::ImageIo) = ccall((:txkit_image_io_destroy, libctxkit), Cvoid, (ImageIo,), io)
+txkit_image_io_new() = ccall((:txkit_image_io_new, libctxkit), ImageIo, ())
+txkit_image_io_set_image_binding(io::ImageIo, index::UInt, image::Image) = ccall((:txkit_image_io_set_image_binding, libctxkit), Int32, (ImageIo, UInt, Image), io, index, image)
+txkit_image_io_set_texture_binding(io::ImageIo, index::UInt, image::Image) = ccall((:txkit_image_io_set_texture_binding, libctxkit), Int32, (ImageIo, UInt, Image), io, index, image)
 
 const StatsMode = Int32
 
@@ -128,6 +135,8 @@ struct PhasorNoiseParams
 
     jitter_amount::Float32
     jitter_max::Int32
+
+    io::ImageIo
 end
 
 struct SimplexNoiseParams
@@ -400,7 +409,49 @@ function compute(context::Context, method::TextureMethod, target::Image, params:
     nothing
 end
 
-export Api, Context, new_context, ImageDim, Image, new_image, destroy, sync, map_read, map_write, TextureMethod, new_method, compute, Registry, new_registry
+struct ImageIo
+    io::Api.ImageIo
+end
+
+function new_image_io()
+    io = Api.txkit_image_io_new()
+
+    if io == C_NULL
+        error("error creating image io object: " * unsafe_string(Api.txkit_get_last_error()))
+    end
+
+    ImageIo(io)
+end
+
+function destroy(io::ImageIo)
+    Api.txkit_image_io_destroy(io.io)
+end
+
+function set_image_binding(io::Api.ImageIo, index::UInt, image::Api.Image)
+    result = Api.txkit_image_io_set_image_binding(io, index, image)
+
+    if result != 0
+        error("error setting binding: " * unsafe_string(Api.txkit_get_last_error()))
+    end
+
+    nothing
+end
+
+set_image_binding(io::ImageIo, index::UInt, image::Image) = set_image_binding(io.io, index, image.image)
+
+function set_texture_binding(io::Api.ImageIo, index::UInt, image::Api.Image)
+    result = Api.txkit_image_io_set_texture_binding(io, index, image)
+
+    if result != 0
+        error("error setting binding: " * unsafe_string(Api.txkit_get_last_error()))
+    end
+
+    nothing
+end
+
+set_texture_binding(io::ImageIo, index::UInt, image::Image) = set_texture_binding(io.io, index, image.image)
+
+export Api, Context, new_context, ImageDim, Image, new_image, destroy, sync, map_read, map_write, TextureMethod, new_method, compute, Registry, new_registry, set_image_binding, set_texture_binding
 
 end # module
 

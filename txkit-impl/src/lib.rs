@@ -10,7 +10,7 @@ pub fn method(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derives::method::process_method(input).unwrap().into()
 }
 
-#[proc_macro_derive(ParamsFor, attributes(txkit))]
+#[proc_macro_derive(ParamsFor, attributes(txkit, image_io, texture_io))]
 pub fn params_for(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     // Parse input tokens
     let input = parse_macro_input!(input as DeriveInput);

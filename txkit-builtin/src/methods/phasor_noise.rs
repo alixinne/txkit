@@ -1,3 +1,4 @@
+use txkit_core::io::ImageIo;
 use txkit_impl::{Method, ParamsFor};
 
 /// Phasor: complex sum divided by the kernel count in R and G
@@ -29,7 +30,7 @@ pub const PHASOR_POINTS_RECT_JITTERED: i32 = 2;
 /// Phasor: hexagonal jittered grid
 pub const PHASOR_POINTS_HEX_JITTERED: i32 = 3;
 
-#[derive(Clone, Copy, PartialEq, ParamsFor)]
+#[derive(Clone, PartialEq, ParamsFor)]
 #[repr(C)]
 #[txkit(program = "PhasorNoiseProgram")]
 pub struct PhasorNoiseParams {
@@ -62,6 +63,10 @@ pub struct PhasorNoiseParams {
     pub jitter_amount: f32,
     /// max jittering subcells, 0 = no limit
     pub jitter_max: i32,
+
+    /// texture inputs
+    #[image_io(frequency_orientation_field(tinygl::gl::READ_ONLY, tinygl::gl::RGBA32F))]
+    pub io: Box<ImageIo>,
 }
 
 impl Default for PhasorNoiseParams {
@@ -80,6 +85,7 @@ impl Default for PhasorNoiseParams {
             noise_angle: 0.,
             jitter_amount: 1.,
             jitter_max: 0,
+            io: Box::new(Default::default()),
         }
     }
 }

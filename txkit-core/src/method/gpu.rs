@@ -28,6 +28,7 @@ pub trait GpuMethod {
 ///
 /// # Type parameters
 ///
+/// * `gl`: OpenGL context
 /// * `P`: type of the program to set the values on
 pub trait GpuMethodParams<P> {
     fn apply(&self, gl: &tinygl::Context, p: &P);

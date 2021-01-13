@@ -46,12 +46,85 @@ fn process_txkit_directive(input: &DeriveInput, list: &syn::MetaList) -> Result<
         match &input.data {
             syn::Data::Struct(ds) => {
                 for field in &ds.fields {
-                    let field = field.ident.as_ref().unwrap();
-                    let setter_method = format_ident!("set_{}", field);
+                    let field_name = field.ident.as_ref().unwrap();
+                    let mut has_io_attrs = false;
 
-                    field_setters.push(quote! {
-                        p.#setter_method(gl, self.#field);
-                    });
+                    for attr in &field.attrs {
+                        let name = attr.path.get_ident().map(|id| id.to_string());
+                        let is_image = name.as_ref().map(|n| n == "image_io").unwrap_or(false);
+                        let is_texture = name.as_ref().map(|n| n == "texture_io").unwrap_or(false);
+
+                        if !is_image && !is_texture {
+                            continue;
+                        }
+
+                        has_io_attrs = true;
+
+                        match attr.parse_meta()? {
+                            syn::Meta::List(list) => {
+                                for io_field in list.nested {
+                                    match io_field {
+                                        syn::NestedMeta::Meta(syn::Meta::List(list))
+                                            if list.path.get_ident().is_some() =>
+                                        {
+                                            let get_binding_method = format_ident!(
+                                                "get_{}_binding",
+                                                list.path.get_ident().unwrap()
+                                            );
+
+                                            if is_image {
+                                                let args: Vec<_> = list.nested.iter().collect();
+                                                let access_arg = &args[0];
+                                                let format_arg = &args[1];
+
+                                                field_setters.push(quote! {
+                                                    self.#field_name.apply_image_binding(gl, p.#get_binding_method() as _, #access_arg, #format_arg);
+                                                });
+                                            } else if is_texture {
+                                                return Err(anyhow!("unexpected flags for texture binding for `{}` on field `{}`", list.path.get_ident().unwrap(), field_name));
+                                            }
+                                        }
+                                        syn::NestedMeta::Meta(syn::Meta::Path(p))
+                                            if p.get_ident().is_some() =>
+                                        {
+                                            let get_binding_method = format_ident!(
+                                                "get_{}_binding",
+                                                p.get_ident().unwrap()
+                                            );
+
+                                            if is_image {
+                                                return Err(anyhow!("image binding for `{}` on field `{}` requires access and format flags", p.get_ident().unwrap(), field_name));
+                                            } else if is_texture {
+                                                field_setters.push(quote! {
+                                                    self.#field_name.apply_texture_binding(gl, p.#get_binding_method() as _);
+                                                });
+                                            }
+                                        }
+                                        _ => {
+                                            return Err(anyhow!(
+                                                "invalid io field specification on field `{}`",
+                                                field_name
+                                            ));
+                                        }
+                                    }
+                                }
+                            }
+                            _ => {
+                                return Err(anyhow!(
+                                    "invalid io attribute on field `{}`",
+                                    field_name
+                                ));
+                            }
+                        }
+                    }
+
+                    if !has_io_attrs {
+                        let setter_method = format_ident!("set_{}", field_name);
+
+                        field_setters.push(quote! {
+                            p.#setter_method(gl, self.#field_name);
+                        });
+                    }
                 }
             }
             _ => {
@@ -69,6 +142,7 @@ fn process_txkit_directive(input: &DeriveInput, list: &syn::MetaList) -> Result<
             #[cfg(any(feature = "gpu", feature = "gpu45"))]
             impl ::txkit_core::method::GpuMethodParams<#ty> for #struct_name {
                 fn apply(&self, gl: &::tinygl::Context, p: &#ty) {
+                    use ::txkit_core::io::gpu::GpuImageIoExt;
                     #(#field_setters)*
                 }
             }

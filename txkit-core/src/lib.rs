@@ -8,6 +8,7 @@
 pub mod context;
 mod error;
 pub mod image;
+pub mod io;
 pub mod method;
 
 pub use error::{Error, Result};

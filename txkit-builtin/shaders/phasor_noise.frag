@@ -36,6 +36,8 @@ layout(location = 26) uniform float noise_angle;
 layout(location = 27) uniform float jitter_amount;
 layout(location = 28) uniform int jitter_max;
 
+layout(location = 29, binding = 0, rgba32f) uniform image2D frequency_orientation_field;
+
 #define PHASOR_PROFILE_IMPULSES 5
 
 #define PHASOR_POINTS_RECT_JITTERED 2

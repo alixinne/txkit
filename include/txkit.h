@@ -42,6 +42,8 @@ typedef struct TxKit_Context TxKit_Context;
  */
 typedef struct TxKit_Image TxKit_Image;
 
+typedef struct TxKit_ImageIo TxKit_ImageIo;
+
 /**
  * Wrapped read-only mapping for FFI
  */
@@ -163,6 +165,10 @@ typedef struct {
      * max jittering subcells, 0 = no limit
      */
     int32_t jitter_max;
+    /**
+     * texture inputs
+     */
+    TxKit_ImageIo *io;
 } TxKit_PhasorNoiseParams;
 
 typedef struct {
@@ -276,6 +282,56 @@ TXKIT_API TxKit_ImageDim txkit_image_dim(const TxKit_Image *image);
  * * `image`: target image
  */
 TXKIT_API TxKit_ImageDataType txkit_image_element_type(const TxKit_Image *image);
+
+/**
+ * Destroy an ImageIo object
+ *
+ * # Parameters
+ *
+ * * `io`: ImageIo object to destroy
+ */
+TXKIT_API void txkit_image_io_destroy(TxKit_ImageIo *io);
+
+/**
+ * Create a new ImageIo object
+ */
+TXKIT_API TxKit_ImageIo *txkit_image_io_new(void);
+
+/**
+ * Set an image binding on an ImageIo object
+ *
+ * # Parameters
+ *
+ * * `io`: ImageIo object to change
+ * * `index`: image unit index
+ * * `image`: image to bind, or NULL to clear bindings
+ *
+ * # Returns
+ *
+ * TxKit_SUCCESS on success, non-zero on error
+ */
+TXKIT_API
+int32_t txkit_image_io_set_image_binding(TxKit_ImageIo *io,
+                                         uintptr_t index,
+                                         TxKit_Image *image);
+
+/**
+ * Set an texture binding on an ImageIo object
+ *
+ * # Parameters
+ *
+ * * `io`: ImageIo object to change
+ * * `index`: texture unit index
+ * * `image`: image to bind, or NULL to clear bindings
+ *
+ * # Returns
+ *
+ * TxKit_SUCCESS on success, non-zero on error
+ */
+TXKIT_API
+int32_t txkit_image_io_set_texture_binding(TxKit_ImageIo *io,
+                                           uintptr_t index,
+                                           TxKit_Image *image);
 
 /**
  * Map the image pixels for read access. The image must be unmapped after being used.

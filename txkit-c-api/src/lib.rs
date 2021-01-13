@@ -3,6 +3,7 @@ use std::any::Any;
 use txkit_core::{
     context::Context,
     image::{Image, ImageDataType, ImageDim, MappedImageData, MappedImageDataMut},
+    io::{ImageBinding, ImageIo},
     method::{Method, MethodRegistry},
     Error,
 };
@@ -418,4 +419,82 @@ pub extern "C" fn txkit_context_new_gpu() -> *mut Context {
 #[no_mangle]
 pub unsafe extern "C" fn txkit_context_destroy(ctx: *mut Context) {
     std::mem::drop(Box::from_raw(ctx))
+}
+
+/// Create a new ImageIo object
+#[no_mangle]
+pub extern "C" fn txkit_image_io_new() -> *mut ImageIo {
+    Box::into_raw(Box::new(ImageIo::new()))
+}
+
+/// Set an image binding on an ImageIo object
+///
+/// # Parameters
+///
+/// * `io`: ImageIo object to change
+/// * `index`: image unit index
+/// * `image`: image to bind, or NULL to clear bindings
+///
+/// # Returns
+///
+/// TxKit_SUCCESS on success, non-zero on error
+#[no_mangle]
+pub unsafe extern "C" fn txkit_image_io_set_image_binding(
+    io: &mut ImageIo,
+    index: usize,
+    image: *mut Image,
+) -> i32 {
+    crate::api::wrap_result_code(|| -> txkit_core::Result<()> {
+        io.set_image_binding(
+            index,
+            if image == std::ptr::null_mut() {
+                ImageBinding::None
+            } else {
+                ImageBinding::ImagePtr(image)
+            },
+        );
+
+        Ok(())
+    })
+}
+
+/// Set an texture binding on an ImageIo object
+///
+/// # Parameters
+///
+/// * `io`: ImageIo object to change
+/// * `index`: texture unit index
+/// * `image`: image to bind, or NULL to clear bindings
+///
+/// # Returns
+///
+/// TxKit_SUCCESS on success, non-zero on error
+#[no_mangle]
+pub unsafe extern "C" fn txkit_image_io_set_texture_binding(
+    io: &mut ImageIo,
+    index: usize,
+    image: *mut Image,
+) -> i32 {
+    crate::api::wrap_result_code(|| -> txkit_core::Result<()> {
+        io.set_texture_binding(
+            index,
+            if image == std::ptr::null_mut() {
+                ImageBinding::None
+            } else {
+                ImageBinding::ImagePtr(image)
+            },
+        );
+
+        Ok(())
+    })
+}
+
+/// Destroy an ImageIo object
+///
+/// # Parameters
+///
+/// * `io`: ImageIo object to destroy
+#[no_mangle]
+pub unsafe extern "C" fn txkit_image_io_destroy(io: *mut ImageIo) {
+    std::mem::drop(Box::from_raw(io))
 }
