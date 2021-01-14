@@ -72,13 +72,17 @@ fn process_txkit_directive(input: &DeriveInput, list: &syn::MetaList) -> Result<
                                                 list.path.get_ident().unwrap()
                                             );
 
+                                            let get_format_method = format_ident!(
+                                                "get_{}_format",
+                                                list.path.get_ident().unwrap()
+                                            );
+
                                             if is_image {
                                                 let args: Vec<_> = list.nested.iter().collect();
                                                 let access_arg = &args[0];
-                                                let format_arg = &args[1];
 
                                                 field_setters.push(quote! {
-                                                    self.#field_name.apply_image_binding(gl, p.#get_binding_method() as _, #access_arg, #format_arg);
+                                                    self.#field_name.apply_image_binding(gl, p.#get_binding_method() as _, #access_arg, p.#get_format_method());
                                                 });
                                             } else if is_texture {
                                                 return Err(anyhow!("unexpected flags for texture binding for `{}` on field `{}`", list.path.get_ident().unwrap(), field_name));
