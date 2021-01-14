@@ -312,7 +312,7 @@ function map_read(f::Function, image::Image{E}) where {E}
         # Wrap the array returned by txkit
         dim = Api.txkit_image_dim(image.image)
         array = unsafe_wrap(Array{E}, map_read_data, (dim.channels, dim.width, dim.height, dim.depth))
-        array = permutedims(array, (4, 3, 2, 1))
+        array = PermutedDimsArray(array, (4, 3, 2, 1))
 
         # Call the user function
         f(array)
@@ -342,7 +342,7 @@ function map_write(f::Function, image::Image{E}) where {E}
         # Wrap the array returned by txkit
         dim = Api.txkit_image_dim(image.image)
         array = unsafe_wrap(Array{E}, map_write_data, (dim.channels, dim.width, dim.height, dim.depth))
-        array = permutedims(array, (4, 3, 2, 1))
+        array = PermutedDimsArray(array, (4, 3, 2, 1))
 
         # Call the user function
         f(array)
