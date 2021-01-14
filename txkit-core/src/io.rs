@@ -206,7 +206,7 @@ pub mod gpu {
         }
 
         fn apply_texture_binding(&self, gl: &tinygl::Context, index: usize) {
-            let binding = self.get_image_binding(index);
+            let binding = self.get_texture_binding(index);
 
             unsafe {
                 match binding {
