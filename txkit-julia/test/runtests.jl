@@ -5,7 +5,7 @@ function run_test(registry, context, dim, image)
         params = DebugParams(0.75)
         compute(context, method, image, Ref(params))
 
-        sync(image)
+        download(image)
 
         map_read(image) do array
             display(array[1,:,:,1])

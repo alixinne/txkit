@@ -275,6 +275,15 @@ TXKIT_API void txkit_image_destroy(TxKit_Image *image);
 TXKIT_API TxKit_ImageDim txkit_image_dim(const TxKit_Image *image);
 
 /**
+ * Download the device data of an image to the host memory
+ *
+ * # Parameters
+ *
+ * * `image`: image to sync
+ */
+TXKIT_API int32_t txkit_image_download(TxKit_Image *image);
+
+/**
  * Return the element type of the image
  *
  * # Parameters
@@ -469,15 +478,6 @@ TxKit_Image *txkit_image_new_gpu_3d(TxKit_ImageDim dim,
                                     const TxKit_Context *context);
 
 /**
- * Sync the host representation of the image with its device counterpart
- *
- * # Parameters
- *
- * * `image`: image to sync
- */
-TXKIT_API int32_t txkit_image_sync(TxKit_Image *image);
-
-/**
  * Unmap a mapped image.
  *
  * # Parameters
@@ -494,6 +494,15 @@ TXKIT_API void txkit_image_unmap_read(TxKit_MappedImageDataRead *read_map);
  * * `write_map`: mapped image object
  */
 TXKIT_API void txkit_image_unmap_write(TxKit_MappedImageDataWrite *write_map);
+
+/**
+ * Upload the host data of an image to the device memory
+ *
+ * # Parameters
+ *
+ * * `image`: image to sync
+ */
+TXKIT_API int32_t txkit_image_upload(TxKit_Image *image);
 
 /**
  * Compute an image using the given method

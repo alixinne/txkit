@@ -9,15 +9,12 @@ use crate::Error;
 pub struct GpuImageData {
     gl: Rc<tinygl::Context>,
     pub(crate) texture: Texture,
-    pub(crate) buffer: Option<Buffer>,
+    pub(crate) buffer: Buffer,
     pub(crate) element_type: ImageDataType,
     pub(crate) dim: ImageDim,
 
     target: u32,
     transfer_sync: RefCell<Option<tinygl::gl::Fence>>,
-
-    device_generation: u32,
-    host_generation: u32,
 }
 
 impl GpuImageData {
@@ -29,6 +26,7 @@ impl GpuImageData {
         allocator: impl Fn(ImageDim, ImageDataType) -> Result<(), ImageCreationError>,
     ) -> Result<Self, ImageCreationError> {
         let texture = GlRefHandle::new(&*gl, Texture::new(gl)?);
+        let buffer = GlRefHandle::new(&*gl, Buffer::new(gl)?);
 
         unsafe {
             texture.bind(gl, target);
@@ -38,13 +36,13 @@ impl GpuImageData {
                 gl.tex_parameteri(
                     target,
                     tinygl::gl::TEXTURE_MIN_FILTER,
-                    tinygl::gl::NEAREST as i32,
+                    tinygl::gl::LINEAR as i32,
                 );
 
                 gl.tex_parameteri(
                     target,
                     tinygl::gl::TEXTURE_MAG_FILTER,
-                    tinygl::gl::NEAREST as i32,
+                    tinygl::gl::LINEAR as i32,
                 );
 
                 allocator(dim, element_type)?;
@@ -56,19 +54,33 @@ impl GpuImageData {
             // Unbind texture after allocation
             gl.bind_texture(target, None);
 
+            // Bind buffer for initialization
+            buffer.bind(&*gl, tinygl::gl::PIXEL_PACK_BUFFER);
+
+            // Only needed once since image sizes are immutable
+            gl.buffer_data(
+                tinygl::gl::PIXEL_PACK_BUFFER,
+                Self::calc_byte_size(element_type, dim) as isize,
+                std::ptr::null(),
+                tinygl::gl::DYNAMIC_READ,
+            );
+
+            gl.check_last_error()?;
+
+            // Unbind buffer
+            gl.bind_buffer(tinygl::gl::PIXEL_PACK_BUFFER, None);
+
             res?
         };
 
         Ok(Self {
             gl: gl.clone(),
             texture: texture.into_inner(),
-            buffer: None,
+            buffer: buffer.into_inner(),
             element_type,
             dim,
             transfer_sync: RefCell::new(None),
             target,
-            device_generation: 0,
-            host_generation: 0,
         })
     }
 
@@ -181,42 +193,16 @@ impl GpuImageData {
     }
 
     pub fn byte_size(&self) -> usize {
-        self.element_type.byte_size()
-            * self.dim.width
-            * self.dim.height
-            * self.dim.depth
-            * self.dim.channels
+        Self::calc_byte_size(self.element_type, self.dim)
     }
 
-    pub fn invalidate_host(&mut self) {
-        self.device_generation += 1;
+    fn calc_byte_size(element_type: ImageDataType, dim: ImageDim) -> usize {
+        element_type.byte_size() * dim.width * dim.height * dim.depth * dim.channels
     }
 
     fn start_download(&mut self) -> Result<(), Error> {
         unsafe {
-            let initialized_buffer = if self.buffer.is_none() {
-                self.buffer = Some(Buffer::new(&*self.gl)?);
-                true
-            } else {
-                false
-            };
-
-            self.buffer
-                .as_ref()
-                .unwrap()
-                .bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
-
-            if initialized_buffer {
-                // Only needed once since image sizes are immutable
-                self.gl.buffer_data(
-                    tinygl::gl::PIXEL_PACK_BUFFER,
-                    self.byte_size() as isize,
-                    std::ptr::null(),
-                    tinygl::gl::DYNAMIC_READ,
-                );
-
-                self.gl.check_last_error()?;
-            }
+            self.buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
 
             self.texture.bind(&*self.gl, self.target);
             self.gl.get_tex_image(
@@ -243,18 +229,82 @@ impl GpuImageData {
                 fence
             });
 
+            self.gl.bind_texture(self.target, None);
+
+            Ok(())
+        }
+    }
+
+    fn start_upload(&mut self) -> Result<(), Error> {
+        unsafe {
+            self.buffer.bind(&*self.gl, tinygl::gl::PIXEL_UNPACK_BUFFER);
+            self.texture.bind(&*self.gl, self.target);
+
+            match self.target {
+                tinygl::gl::TEXTURE_1D => {
+                    self.gl.tex_image_1d(
+                        self.target,
+                        0,
+                        self.dim
+                            .internal_format(self.element_type)
+                            .expect("incompatible internal format"),
+                        self.dim.width as _,
+                        0,
+                        self.dim
+                            .unsized_format()
+                            .expect("incompatible unsized format"),
+                        self.element_type.format_type(),
+                        None,
+                    );
+                }
+                tinygl::gl::TEXTURE_2D => {
+                    self.gl.tex_image_2d(
+                        self.target,
+                        0,
+                        self.dim
+                            .internal_format(self.element_type)
+                            .expect("incompatible internal format"),
+                        self.dim.width as _,
+                        self.dim.height as _,
+                        0,
+                        self.dim
+                            .unsized_format()
+                            .expect("incompatible unsized format"),
+                        self.element_type.format_type(),
+                        None,
+                    );
+                }
+                tinygl::gl::TEXTURE_3D => {
+                    self.gl.tex_image_3d(
+                        self.target,
+                        0,
+                        self.dim
+                            .internal_format(self.element_type)
+                            .expect("incompatible internal format"),
+                        self.dim.width as _,
+                        self.dim.height as _,
+                        self.dim.depth as _,
+                        0,
+                        self.dim
+                            .unsized_format()
+                            .expect("incompatible unsized format"),
+                        self.element_type.format_type(),
+                        None,
+                    );
+                }
+                _ => unreachable!("unknown texture target"),
+            }
+
+            self.gl.check_last_error()?;
+
+            self.gl.bind_texture(self.target, None);
+            self.gl.bind_buffer(tinygl::gl::PIXEL_UNPACK_BUFFER, None);
+
             Ok(())
         }
     }
 
     unsafe fn map_buffer(&self, usage: u32) -> Result<*mut u8, ImageDataError> {
-        let buffer = match self.buffer.as_ref() {
-            Some(r) => r,
-            None => {
-                return Err(ImageDataError::Unsynced);
-            }
-        };
-
         if let Some(fence_sync) = self.transfer_sync.borrow_mut().take() {
             loop {
                 match self.gl.client_wait_sync(
@@ -277,7 +327,7 @@ impl GpuImageData {
             }
         }
 
-        buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
+        self.buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
 
         let ptr = self.gl.map_buffer_range(
             tinygl::gl::PIXEL_PACK_BUFFER,
@@ -296,11 +346,9 @@ impl GpuImageData {
     }
 
     unsafe fn unmap_buffer(&self) {
-        if let Some(buffer) = &self.buffer {
-            buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
-            self.gl.unmap_buffer(tinygl::gl::PIXEL_PACK_BUFFER);
-            self.gl.bind_buffer(tinygl::gl::PIXEL_PACK_BUFFER, None);
-        }
+        self.buffer.bind(&*self.gl, tinygl::gl::PIXEL_PACK_BUFFER);
+        self.gl.unmap_buffer(tinygl::gl::PIXEL_PACK_BUFFER);
+        self.gl.bind_buffer(tinygl::gl::PIXEL_PACK_BUFFER, None);
     }
 }
 
@@ -310,7 +358,7 @@ impl Drop for GpuImageData {
 
         unsafe {
             self.texture.drop(&*self.gl);
-            self.buffer.take().map(|mut buffer| buffer.drop(&*self.gl));
+            self.buffer.drop(&*self.gl);
         }
     }
 }
@@ -322,12 +370,11 @@ impl ImageDataBase for GpuImageData {
     fn element_type(&self) -> ImageDataType {
         self.element_type
     }
-    fn sync(&mut self) -> Result<(), Error> {
-        if self.host_generation != self.device_generation {
-            self.start_download()
-        } else {
-            Ok(())
-        }
+    fn download(&mut self) -> Result<(), Error> {
+        self.start_download()
+    }
+    fn upload(&mut self) -> Result<(), Error> {
+        self.start_upload()
     }
     fn as_gpu_image(&self) -> Option<&GpuImageData> {
         Some(self)

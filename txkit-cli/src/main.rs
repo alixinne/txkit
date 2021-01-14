@@ -94,7 +94,7 @@ fn write_gpu_method_result(
     method.compute(&mut ctx, &mut img, None)?;
 
     // Sync image
-    img.sync()?;
+    img.download()?;
 
     // Map it for reading
     let data = img.data()?;
@@ -123,7 +123,7 @@ fn write_cpu_method_result(
     method.compute(&mut ctx, &mut img, None)?;
 
     // Sync image
-    img.sync()?;
+    img.download()?;
 
     // Map it for reading
     let data = img.data()?;

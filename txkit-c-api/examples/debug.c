@@ -37,8 +37,8 @@ int main(int argc, char *argv[]) {
 	txkit_method_compute(ctx, mth, img, &params, sizeof(params));
 	txkit_method_compute(ctx_cpu, mth, img_cpu, &params, sizeof(params));
 
-	txkit_image_sync(img);
-	txkit_image_sync(img_cpu);
+	txkit_image_download(img);
+	txkit_image_download(img_cpu);
 
 	TxKit_MappedImageDataRead *read_map = txkit_image_map_read(img);
 	TXKIT_CHECKPTR(read_map);

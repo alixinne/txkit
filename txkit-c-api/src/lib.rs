@@ -243,14 +243,24 @@ pub extern "C" fn txkit_image_dim(image: &Image) -> ImageDim {
     image.dim()
 }
 
-/// Sync the host representation of the image with its device counterpart
+/// Download the device data of an image to the host memory
 ///
 /// # Parameters
 ///
 /// * `image`: image to sync
 #[no_mangle]
-pub extern "C" fn txkit_image_sync(image: &mut Image) -> i32 {
-    crate::api::wrap_result_code(|| image.sync())
+pub extern "C" fn txkit_image_download(image: &mut Image) -> i32 {
+    crate::api::wrap_result_code(|| image.download())
+}
+
+/// Upload the host data of an image to the device memory
+///
+/// # Parameters
+///
+/// * `image`: image to sync
+#[no_mangle]
+pub extern "C" fn txkit_image_upload(image: &mut Image) -> i32 {
+    crate::api::wrap_result_code(|| image.upload())
 }
 
 /// Wrapped read-only mapping for FFI

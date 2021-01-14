@@ -63,7 +63,8 @@ txkit_image_new_cpu(dim::ImageDim, element_type::ImageDataType) = ccall((:txkit_
 txkit_image_new_gpu_1d(dim::ImageDim, element_type::ImageDataType, context::Context) = ccall((:txkit_image_new_gpu_1d, libctxkit), Image, (ImageDim, ImageDataType, Context), dim, element_type, context)
 txkit_image_new_gpu_2d(dim::ImageDim, element_type::ImageDataType, context::Context) = ccall((:txkit_image_new_gpu_2d, libctxkit), Image, (ImageDim, ImageDataType, Context), dim, element_type, context)
 txkit_image_new_gpu_3d(dim::ImageDim, element_type::ImageDataType, context::Context) = ccall((:txkit_image_new_gpu_3d, libctxkit), Image, (ImageDim, ImageDataType, Context), dim, element_type, context)
-txkit_image_sync(image::Image) = ccall((:txkit_image_sync, libctxkit), Int32, (Image,), image)
+txkit_image_download(image::Image) = ccall((:txkit_image_download, libctxkit), Int32, (Image,), image)
+txkit_image_upload(image::Image) = ccall((:txkit_image_upload, libctxkit), Int32, (Image,), image)
 txkit_image_unmap_read(read_map::MappedImageDataRead) = ccall((:txkit_image_unmap_read, libctxkit), Cvoid, (MappedImageDataRead,), read_map)
 txkit_image_unmap_write(write_map::MappedImageDataRead) = ccall((:txkit_image_unmap_write, libctxkit), Cvoid, (MappedImageDataWrite,), write_map)
 
@@ -283,9 +284,18 @@ function destroy(image::Image)
     Api.txkit_image_destroy(image.image)
 end
 
-function sync(image::Image)
-    if Api.txkit_image_sync(image.image) != 0
-        error("error syncing image: " * unsafe_string(Api.txkit_get_last_error()))
+import Base.download
+function download(image::Image)
+    if Api.txkit_image_download(image.image) != 0
+        error("error downloading image: " * unsafe_string(Api.txkit_get_last_error()))
+    end
+
+    nothing
+end
+
+function upload(image::Image)
+    if Api.txkit_image_upload(image.image) != 0
+        error("error uploading image: " * unsafe_string(Api.txkit_get_last_error()))
     end
 
     nothing
@@ -463,7 +473,7 @@ end
 
 set_texture_binding(io::ImageIo, index::UInt, image::Image) = set_texture_binding(io.io, index, image.image)
 
-export Api, Context, new_context, ImageDim, Image, new_image, destroy, sync, map_read, map_write, TextureMethod, new_method, compute, Registry, new_registry, set_image_binding, set_texture_binding
+export Api, Context, new_context, ImageDim, Image, new_image, destroy, download, upload, map_read, map_write, TextureMethod, new_method, compute, Registry, new_registry, set_image_binding, set_texture_binding
 
 end # module
 

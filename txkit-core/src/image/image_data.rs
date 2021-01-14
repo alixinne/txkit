@@ -10,9 +10,15 @@ pub trait ImageDataBase {
     /// Get the native type of elements in this image
     fn element_type(&self) -> ImageDataType;
 
-    /// Sync the contents of the (mappable) host data with device data.
+    /// Download texture data to the mappable buffer
     /// Required for GPU backends. May be asynchronous.
-    fn sync(&mut self) -> crate::Result<()> {
+    fn download(&mut self) -> crate::Result<()> {
+        Ok(())
+    }
+
+    /// Upload mappable buffer data to device texture
+    /// Required for GPU backends. May be asynchronous.
+    fn upload(&mut self) -> crate::Result<()> {
         Ok(())
     }
 
