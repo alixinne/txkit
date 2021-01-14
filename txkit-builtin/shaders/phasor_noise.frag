@@ -36,7 +36,7 @@ layout(location = 26) uniform float noise_angle;
 layout(location = 27) uniform float jitter_amount;
 layout(location = 28) uniform int jitter_max;
 
-layout(location = 29, binding = 0, rgba32f) uniform image2D frequency_orientation_field;
+layout(location = 29, binding = 0) uniform sampler2D frequency_orientation_field;
 
 #define PHASOR_PROFILE_IMPULSES 5
 
@@ -45,10 +45,9 @@ layout(location = 29, binding = 0, rgba32f) uniform image2D frequency_orientatio
 
 struct Kernel {
     vec2 pos;
-    float frequency;
-    float phase;
-    float angle;
     float weight;
+    vec2 angle;
+    float phase;
 };
 
 vec2 phasor(vec2 x, Kernel k) {
@@ -60,8 +59,7 @@ vec2 phasor(vec2 x, Kernel k) {
     float b = (1. / scale) * (1. / scale) * M_PI;
 
     gaus = exp(-b * dot(x, x));
-    osc = 2. * M_PI * dot(x, k.frequency * vec2(cos(k.angle), sin(k.angle))) +
-          k.phase;
+    osc = 2. * M_PI * dot(x, k.angle) + k.phase;
 
     return k.weight * gaus * vec2(cos(osc), sin(osc));
 }
@@ -89,6 +87,9 @@ vec2 noiseCell(vec2 pos, ivec2 cell, uint seed) {
 
     // Fixed number of impulses per cell
     for (int i = 0; i < ic; ++i) {
+        // Sample kernel parameters
+        vec4 fo = texture(frequency_orientation_field, (pos + vec2(cell)) / scale);
+
         // Generate a kernel
         Kernel k;
         k.pos = .5 + (vec2(lcgNext01(rng), lcgNext01(rng)) - .5) * jitter_amount;
@@ -112,10 +113,6 @@ vec2 noiseCell(vec2 pos, ivec2 cell, uint seed) {
             k.pos = (k.pos + vec2(col, row)) / vec2(bc);
         }
 
-        k.frequency = noise_frequency / scale;
-        k.phase = 0.;
-        k.angle = noise_angle;
-
         // Compute weighting: always step the generator so we can get the same
         // image with and without weights
         float v = lcgNext11(rng);
@@ -125,6 +122,9 @@ vec2 noiseCell(vec2 pos, ivec2 cell, uint seed) {
         } else if (noise_weights == 2 /* PHASOR_WEIGHTS_UNIFORM */) {
             k.weight = v;
         }
+
+        k.angle = noise_frequency / scale * (1. + fo.r) * vec2(cos(noise_angle + fo.g), sin(noise_angle + fo.g));
+        k.phase = 0.;
 
         // Compute contribution
         res += phasor(scale * (pos - k.pos), k);

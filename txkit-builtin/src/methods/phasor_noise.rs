@@ -65,7 +65,7 @@ pub struct PhasorNoiseParams {
     pub jitter_max: i32,
 
     /// texture inputs
-    #[image_io(frequency_orientation_field(tinygl::gl::READ_ONLY))]
+    #[texture_io(frequency_orientation_field)]
     pub io: Box<ImageIo>,
 }
 
