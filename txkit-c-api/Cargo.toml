@@ -30,3 +30,6 @@ default = ["cpu", "gpu"]
 cpu = ["txkit-builtin/cpu"]
 gpu = ["txkit-builtin/gpu"]
 gpu45 = ["txkit-builtin/gpu45"]
+
+[build-dependencies]
+quote = "1.0"
