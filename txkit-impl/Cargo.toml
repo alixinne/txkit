@@ -9,11 +9,11 @@ proc-macro = true
 
 [dependencies]
 anyhow = "1"
-syn = "1"
-quote = "1"
-proc-macro2 = "1"
+syn = "1.0"
+quote = "1.0"
+proc-macro2 = "1.0"
 tinygl-compiler = { git = "https://github.com/vtavernier/tinygl.git", optional = true, default-features = false, features = ["codegen"] }
-heck = "0.3.1"
+heck = "0.3"
 
 [features]
 default = ["cpu", "gpu"]

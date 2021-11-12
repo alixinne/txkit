@@ -8,11 +8,11 @@ edition = "2018"
 txkit-builtin = { version = "=0.1.0", default-features = false }
 txkit-core = { version = "=0.1.0", default-features = false }
 
-argh = "0.1.4"
-color-eyre = "0.5.7"
-image = "0.23.11"
-env_logger = "0.8"
-log = "0.4.11"
+argh = "0.1"
+color-eyre = "0.5"
+image = "0.23"
+env_logger = "0.9"
+log = "0.4"
 base64 = "0.13.0"
 
 [features]
