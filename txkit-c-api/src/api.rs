@@ -50,7 +50,7 @@ pub fn wrap<T>(r: impl FnOnce() -> T) -> Option<T> {
                 set_last_error(message);
             } else {
                 // For debugging, don't just ignore the error if we can't print it
-                panic!(error);
+                std::panic::panic_any(error);
             }
 
             None
@@ -73,7 +73,7 @@ pub fn wrap_result<T, E: std::fmt::Display>(r: impl FnOnce() -> Result<T, E>) ->
                 set_last_error(message);
             } else {
                 // For debugging, don't just ignore the error if we can't print it
-                panic!(error);
+                std::panic::panic_any(error);
             }
 
             None
@@ -96,7 +96,7 @@ pub fn wrap_result_code<E: std::fmt::Display>(r: impl FnOnce() -> Result<(), E>)
                 set_last_error(message);
             } else {
                 // For debugging, don't just ignore the error if we can't print it
-                panic!(error);
+                std::panic::panic_any(error);
             }
 
             1
