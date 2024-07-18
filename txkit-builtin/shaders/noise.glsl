@@ -1,7 +1,7 @@
 /**
  * @file noise.glsl
  * @brief Shared noise definitions
- * @author Vincent Tavernier <vince.tavernier@gmail.com>
+ * @author Alixinne <alixinne@pm.me>
  */
 
 #ifndef _NOISE_GLSL_

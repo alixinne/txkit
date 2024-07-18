@@ -4,7 +4,7 @@
  * @file gradient_noise.frag
  * @brief 2D gradient noise fragment shader
  * @author inigo quilez
- * @author Vincent Tavernier <vince.tavernier@gmail.com>
+ * @author Alixinne <alixinne@pm.me>
  * @see https://www.shadertoy.com/view/XdXGW8
  *
  * 2D Gradient noise, adapted for use in txkit.

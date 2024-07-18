@@ -1,7 +1,7 @@
 [package]
 name = "txkit-builtin"
 version = "0.1.0"
-authors = ["Vincent Tavernier <vince.tavernier@gmail.com>"]
+authors = ["Alixinne <alixinne@pm.me>"]
 edition = "2018"
 
 [dependencies]
@@ -10,7 +10,7 @@ txkit-impl = { version = "=0.1.0", default-features = false }
 
 ndarray = "0.15"
 cgmath = "0.18"
-tinygl = { git = "https://github.com/vtavernier/tinygl.git", optional = true, default-features = false }
+tinygl = { git = "https://github.com/alixinne/tinygl.git", optional = true, default-features = false }
 
 [features]
 default = ["cpu", "gpu"]

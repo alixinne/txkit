@@ -1,7 +1,7 @@
 /**
  * @file noise_stats.glsl
  * @brief Noise statistics utilities
- * @author Vincent Tavernier <vince.tavernier@gmail.com>
+ * @author Alixinne <alixinne@pm.me>
  *
  * Lattice noise statistics utilities.
  */

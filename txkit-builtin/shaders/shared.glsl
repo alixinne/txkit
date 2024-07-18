@@ -1,7 +1,7 @@
 /**
  * @file shared.glsl
  * @brief Shared utilities for txkit shaders
- * @author Vincent Tavernier <vince.tavernier@gmail.com>
+ * @author Alixinne <alixinne@pm.me>
  */
 
 #ifndef _SHARED_GLSL_

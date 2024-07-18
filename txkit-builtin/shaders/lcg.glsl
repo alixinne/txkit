@@ -1,7 +1,7 @@
 /**
  * @file lcg.frag
  * @brief Linear congruential pseudo-random number generator
- * @author Vincent Tavernier <vince.tavernier@gmail.com>
+ * @author Alixinne <alixinne@pm.me>
  */
 
 #ifndef _LCG_GLSL_

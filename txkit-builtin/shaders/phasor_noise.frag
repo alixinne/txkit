@@ -3,7 +3,7 @@
 /**
  * @file phasor_noise.frag
  * @brief Phasor noise fragment shader
- * @author Vincent Tavernier <vince.tavernier@gmail.com>
+ * @author Alixinne <alixinne@pm.me>
  * @see https://hal.archives-ouvertes.fr/hal-02118508/
  * @see https://hal.inria.fr/hal-02524371/
  *

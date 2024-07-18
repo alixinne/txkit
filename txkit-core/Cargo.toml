@@ -1,14 +1,14 @@
 [package]
 name = "txkit-core"
 version = "0.1.0"
-authors = ["Vincent Tavernier <vince.tavernier@gmail.com>"]
+authors = ["Alixinne <alixinne@pm.me>"]
 edition = "2018"
 license = "MIT"
 
 [dependencies]
 log = "0.4"
 
-tinygl = { git = "https://github.com/vtavernier/tinygl.git", optional = true, default-features = false }
+tinygl = { git = "https://github.com/alixinne/tinygl.git", optional = true, default-features = false }
 glutin = { version = "0.27", optional = true }
 ndarray = "0.15"
 rayon = { version = "1.5", optional = true }

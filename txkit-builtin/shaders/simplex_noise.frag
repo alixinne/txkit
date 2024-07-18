@@ -4,7 +4,7 @@
  * @file simplex_noise.frag
  * @brief 2D simplex noise fragment shader
  * @author inigo quilez
- * @author Vincent Tavernier <vince.tavernier@gmail.com>
+ * @author Alixinne <alixinne@pm.me>
  * @see https://www.shadertoy.com/view/Msf3WH
  * @todo Support cyclic coordinates
  *

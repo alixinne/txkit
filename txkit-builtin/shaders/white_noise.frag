@@ -3,7 +3,7 @@
 /**
  * @file white_noise.frag
  * @brief 3D uniform white noise
- * @author Vincent Tavernier <vince.tavernier@gmail.com>
+ * @author Alixinne <alixinne@pm.me>
  *
  * 3D uniform white noise
  */

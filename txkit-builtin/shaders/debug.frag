@@ -3,7 +3,7 @@
 /**
  * @file debug.frag
  * @brief Debug fragment shader
- * @author Vincent Tavernier <vince.tavernier@gmail.com>
+ * @author Alixinne <alixinne@pm.me>
  *
  * Debug frament shader. Outputs grid coordinates as components of the color output.
  */

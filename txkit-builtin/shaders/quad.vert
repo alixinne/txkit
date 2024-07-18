@@ -4,7 +4,7 @@
  * @file quad.vert
  * @brief Buffer-less screen quad vertex shader
  * @author Morgan McGuire
- * @author Vincent Tavernier <vince.tavernier@gmail.com>
+ * @author Alixinne <alixinne@pm.me>
  * @see https://twitter.com/casualeffects/status/705750628849590273
  */
 

@@ -4,7 +4,7 @@
  * @file value_noise.frag
  * @brief 2D value noise fragment shader
  * @author inigo quilez
- * @author Vincent Tavernier <vince.tavernier@gmail.com>
+ * @author Alixinne <alixinne@pm.me>
  * @see https://www.shadertoy.com/view/lsf3WH
  *
  * 2D value noise, adapted for use in txkit.
